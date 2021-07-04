@@ -1,6 +1,18 @@
-int main() 
+#include <GLFW/glfw3.h>
+
+int main()
 {
-    LOG_OUT("hello, world!");
+    glfwInit();
+
+    GLFWwindow* window;
+    window = glfwCreateWindow(800, 600, "Vulkan Tutorial", nullptr, nullptr);
+
+    while (!glfwWindowShouldClose(window)) 
+    {
+        glfwPollEvents();
+
+        glfwSwapBuffers(window);
+    }
 
     return 0;
 }
