@@ -11,6 +11,8 @@ public:
 	Pipeline(const std::string& vertexShaderCode, const std::string& fragmentShaderCode);
 	~Pipeline();
 
+	const std::shared_ptr<RenderPass>& GetRenderPass() const;
+
 private:
 	VkPipeline pipeline;
 

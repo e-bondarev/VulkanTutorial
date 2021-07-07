@@ -6,6 +6,8 @@
 #include "vk/surface/surface.h"
 #include "vk/swap_chain/swap_chain.h"
 #include "vk/pipeline/default_pipeline.h"
+#include "vk/render_target/render_target.h"
+#include "vk/render_target/swap_chain_render_target.h"
 
 void Window::OnInit()
 {
@@ -15,6 +17,7 @@ void Window::OnInit()
 	Vk::SwapChain::Create();
 
 	Vk::DefaultPipeline::Create();
+	Vk::SwapChainRenderTarget::Create(Vk::DefaultPipeline::pipeline->GetRenderPass()->GetVkRenderPass());
 }
 
 void Window::OnUpdate()
@@ -26,6 +29,7 @@ void Window::OnUpdate()
 
 void Window::OnShutdown()
 {
+	Vk::SwapChainRenderTarget::Destroy();
 	Vk::DefaultPipeline::Destroy();
 
 	Vk::SwapChain::Destroy();

@@ -140,4 +140,9 @@ Pipeline::~Pipeline()
 	DestroyPipelineLayout();
 }
 
+const std::shared_ptr<RenderPass>& Pipeline::GetRenderPass() const
+{
+	return renderPass;
+}
+
 }

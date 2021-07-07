@@ -12,6 +12,8 @@ public:
 	RenderPass();
 	~RenderPass();
 
+	VkRenderPass GetVkRenderPass() const;
+
 private:
 	VkRenderPass renderPass;
 

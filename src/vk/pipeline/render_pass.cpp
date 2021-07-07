@@ -41,4 +41,9 @@ RenderPass::~RenderPass()
     vkDestroyRenderPass(GPU::gpu, renderPass, nullptr);
 }
 
+VkRenderPass RenderPass::GetVkRenderPass() const
+{
+	return renderPass;
+}
+
 }
