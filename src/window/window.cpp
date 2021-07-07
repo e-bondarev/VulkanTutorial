@@ -2,30 +2,31 @@
 
 namespace Window {
 
-GLFWwindow* window = nullptr;
+GLFWwindow* glfwWindow = nullptr;
 
 void Create(int width, int height)
 {
     glfwInit();
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    window = glfwCreateWindow(width, height, "Vulkan Tutorial", nullptr, nullptr);
+    glfwWindow = glfwCreateWindow(width, height, "Vulkan Tutorial", nullptr, nullptr);
 	OnInit();
 }
 
 void Update()
 {
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(glfwWindow))
 	{
 		glfwPollEvents();
 		OnUpdate();
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(glfwWindow);
 	}
 }
 
 void Shutdown() 
 {
 	OnShutdown();
-	glfwDestroyWindow(window);
+	glfwDestroyWindow(glfwWindow);
 	glfwTerminate();
 }
 

@@ -1,7 +1,6 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "../../common.h"
 
 namespace Vk {
 namespace GPU {
@@ -13,6 +12,7 @@ bool IsDeviceSuitable(VkPhysicalDevice device);
 struct QueueFamilyIndices
 {
 	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
 
 	bool IsComplete() const;
 };
@@ -24,6 +24,7 @@ extern VkDevice gpu;
 void CreateLogicalDevice();
 
 extern VkQueue graphicsQueue;
+extern VkQueue presentQueue;
 
 void Create();
 void Destroy();

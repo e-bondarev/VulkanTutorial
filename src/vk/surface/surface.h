@@ -3,9 +3,9 @@
 #include "../../common.h"
 
 namespace Vk {
-namespace Instance {
+namespace Surface {
 
-extern VkInstance instance;
+extern VkSurfaceKHR surface;
 
 void Create();
 void Destroy();

@@ -5,7 +5,7 @@
 
 namespace Window {
 
-extern GLFWwindow* window;
+extern GLFWwindow* glfwWindow;
 
 void Create(int width = 800, int height = 600);
 void Update();
