@@ -3,13 +3,30 @@
 #include "../instance/instance.h"
 #include "../instance/validation.h"
 #include "../surface/surface.h"
+#include "../swap_chain/support_details.h"
+#include "queue_family.h"
 
 namespace Vk {
 namespace GPU {
 
 VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
-QueueFamilyIndices indices = {};
+bool CheckDeviceExtensionSupport(VkPhysicalDevice device)
+{
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+    std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+
+    for (const auto& extension : availableExtensions) {
+        requiredExtensions.erase(extension.extensionName);
+    }
+
+    return requiredExtensions.empty();
+}
 
 void PickPhysicalDevice()
 {
@@ -41,52 +58,18 @@ void PickPhysicalDevice()
 
 bool IsDeviceSuitable(VkPhysicalDevice device) 
 {
-	indices = FindQueueFamilies(device);	
+	Queues::indices = Queues::FindQueueFamilies(device);
 
+	bool extensionsSupported = CheckDeviceExtensionSupport(device);
+	bool swapChainAdequate = false;
 
-    return indices.IsComplete();
-}
-
-bool QueueFamilyIndices::IsComplete() const
-{
-	return graphicsFamily.has_value() && presentFamily.has_value();
-}
-
-QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device)
-{
-	QueueFamilyIndices newIndices;
-
-	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-	int i = 0;
-	for (const auto& queueFamily : queueFamilies) 
+	if (extensionsSupported)
 	{
-		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) 
-		{
-			newIndices.graphicsFamily = i;
-
-            VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, Surface::surface, &presentSupport);
-
-            if (presentSupport) 
-			{
-                newIndices.presentFamily = i;
-            }
-
-			if (newIndices.IsComplete())
-			{
-				break;
-			}
-		}
-
-		i++;
+		SwapChain::SupportDetails swapChainSupportDetails = SwapChain::QuerySwapChainSupport(device);
+		swapChainAdequate = !swapChainSupportDetails.formats.empty() && !swapChainSupportDetails.presentModes.empty();
 	}
 
-	return newIndices;
+    return Queues::indices.IsComplete() && swapChainAdequate;
 }
 
 VkDevice gpu = VK_NULL_HANDLE;
@@ -96,7 +79,7 @@ void CreateLogicalDevice()
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<uint32_t> uniqueQueueFamilies = 
 	{
-		indices.graphicsFamily.value(), indices.presentFamily.value()
+		Queues::indices.graphicsFamily.value(), Queues::indices.presentFamily.value()
 	};
 
 	float queuePriority = 1.0f;
@@ -118,7 +101,9 @@ void CreateLogicalDevice()
 	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 
 	createInfo.pEnabledFeatures = &deviceFeatures;
-	createInfo.enabledExtensionCount = 0;
+
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 	if (Validation::enableValidationLayers) 
 	{
@@ -132,10 +117,9 @@ void CreateLogicalDevice()
 
 	VK_CHECK(vkCreateDevice(physicalDevice, &createInfo, nullptr, &gpu), "Failed to create logical device.");
 
-	vkGetDeviceQueue(gpu, indices.graphicsFamily.value(), 0, &graphicsQueue);
+	vkGetDeviceQueue(gpu, Queues::indices.graphicsFamily.value(), 0, &Queues::graphicsQueue);
+	vkGetDeviceQueue(gpu, Queues::indices.presentFamily.value(), 0, &Queues::presentQueue);
 }
-
-VkQueue graphicsQueue = VK_NULL_HANDLE;
 
 void Create()
 {
