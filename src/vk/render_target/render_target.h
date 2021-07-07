@@ -12,6 +12,8 @@ public:
 	RenderTarget(VkExtent2D extent, const std::vector<VkImageView>& imageViews, VkRenderPass renderPass);
 	~RenderTarget();
 
+	const std::vector<std::shared_ptr<Framebuffer>>& GetFramebuffers() const;
+
 private:
 	std::vector<std::shared_ptr<Framebuffer>> framebuffers;
 

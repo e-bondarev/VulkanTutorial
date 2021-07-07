@@ -25,4 +25,9 @@ Framebuffer::~Framebuffer()
 	vkDestroyFramebuffer(GPU::gpu, framebuffer, nullptr);
 }
 
+const VkFramebuffer& Framebuffer::GetVkFramebuffer() const
+{
+	return framebuffer;
+}
+
 }

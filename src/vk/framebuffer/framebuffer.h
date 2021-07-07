@@ -10,6 +10,8 @@ public:
 	Framebuffer(VkExtent2D extent, VkImageView imageView, VkRenderPass renderPass);
 	~Framebuffer();
 
+	const VkFramebuffer& GetVkFramebuffer() const;
+
 private:
 	VkFramebuffer framebuffer;
 

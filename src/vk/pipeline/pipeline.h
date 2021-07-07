@@ -12,6 +12,7 @@ public:
 	~Pipeline();
 
 	const std::shared_ptr<RenderPass>& GetRenderPass() const;
+	const VkPipeline& GetVkPipeline() const;
 
 private:
 	VkPipeline pipeline;

@@ -145,4 +145,9 @@ const std::shared_ptr<RenderPass>& Pipeline::GetRenderPass() const
 	return renderPass;
 }
 
+const VkPipeline& Pipeline::GetVkPipeline() const
+{
+	return pipeline;
+}
+
 }

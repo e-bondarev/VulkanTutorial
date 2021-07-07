@@ -15,4 +15,9 @@ RenderTarget::~RenderTarget()
 	
 }
 
+const std::vector<std::shared_ptr<Framebuffer>>& RenderTarget::GetFramebuffers() const
+{
+	return framebuffers;
+}
+
 }
