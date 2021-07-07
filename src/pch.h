@@ -2,9 +2,11 @@
 
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <optional>
 #include <vector>
 #include <string>
+#include <array>
 #include <set>
 
 #define LOG_OUT(...) 	spdlog::info(__VA_ARGS__)
