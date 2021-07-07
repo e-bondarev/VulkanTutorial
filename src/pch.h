@@ -6,6 +6,7 @@
 #include <optional>
 #include <vector>
 #include <string>
+#include <memory>
 #include <array>
 #include <set>
 
