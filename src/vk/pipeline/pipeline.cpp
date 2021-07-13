@@ -140,4 +140,9 @@ namespace Vk
 	{
 		return vkPipelineLayout;
 	}
+
+	const RenderPass* Pipeline::GetRenderPass() const
+	{
+		return renderPass;
+	}
 }

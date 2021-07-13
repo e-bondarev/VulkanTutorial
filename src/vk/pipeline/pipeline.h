@@ -14,6 +14,7 @@ namespace Vk
 		~Pipeline();
 
 		VkPipelineLayout GetVkPipelineLayout() const;
+		const RenderPass* GetRenderPass() const;
 
 	private:
 		Shader* shader;

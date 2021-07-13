@@ -11,8 +11,10 @@
 #include "vk/swap_chain/swap_chain.h"
 
 #include "vk/pipeline/pipeline.h"
+#include "vk/framebuffer/framebuffer.h"
 
 Vk::Pipeline* pipeline;
+std::vector<Vk::Framebuffer*> framebuffers;
 
 void Window::OnInit()
 {
@@ -23,7 +25,17 @@ void Window::OnInit()
 
 	Assets::Text vs_code("assets/shaders/default.vert.spv");
 	Assets::Text fs_code("assets/shaders/default.frag.spv");
-	pipeline = new Vk::Pipeline(vs_code.GetContent(), fs_code.GetContent(), { Vk::swapChain->GetExtent().width, Vk::swapChain->GetExtent().height }, Vk::swapChain->GetImageFormat());
+
+	glm::vec2 viewport_size = { Vk::swapChain->GetExtent().width, Vk::swapChain->GetExtent().height };
+
+	pipeline = new Vk::Pipeline(vs_code.GetContent(), fs_code.GetContent(), viewport_size, Vk::swapChain->GetImageFormat());
+
+	// framebuffers.resize(Vk::swapChain->GetImageViews().size());
+
+	for (const VkImageView& image_view : Vk::swapChain->GetImageViews())
+	{
+		framebuffers.push_back(new Vk::Framebuffer(image_view, pipeline->GetRenderPass()->GetVkRenderPass(), viewport_size));
+	}
 }
 
 void Window::OnUpdate()
@@ -33,6 +45,11 @@ void Window::OnUpdate()
 
 void Window::OnShutdown()
 {
+	for (const Vk::Framebuffer* framebuffer : framebuffers)
+	{
+		delete framebuffer;
+	}
+
 	delete pipeline;
 
 	delete Vk::swapChain;
