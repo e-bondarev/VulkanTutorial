@@ -20,14 +20,16 @@ std::vector<Vk::Framebuffer*> framebuffers;
 std::vector<Vk::CommandPool*> commandPools;
 std::vector<Vk::CommandBuffer*> commandBuffers;
 
-// VkSemaphore imageAvailable;
-// VkSemaphore renderFinished;
-
 static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
-std::vector<VkSemaphore> imageAvailable;
-std::vector<VkSemaphore> renderFinished;
-std::vector<VkFence> inFlightFences;
+struct Frame
+{
+	VkSemaphore ImageAvailable;
+	VkSemaphore RenderFinished;
+	VkFence InFlightFence;
+};
+
+std::vector<Frame> frames;
 std::vector<VkFence> imagesInFlight;
 
 int currentFrame = 0;
@@ -83,13 +85,9 @@ void Window::OnInit()
 		commandBuffers[i]->End();
 	}
 
-	
-    imageAvailable.resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinished.resize(MAX_FRAMES_IN_FLIGHT);
-    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+	frames.resize(MAX_FRAMES_IN_FLIGHT);
     imagesInFlight.resize(framebuffers.size(), VK_NULL_HANDLE);
 
-	// Create semaphores
     VkSemaphoreCreateInfo semaphore_info{};
     semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -99,27 +97,24 @@ void Window::OnInit()
 
 	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		VK_CHECK(vkCreateSemaphore(Vk::device->GetVkDevice(), &semaphore_info, nullptr, &imageAvailable[i]), "Failed to create semaphore 1");
-		VK_CHECK(vkCreateSemaphore(Vk::device->GetVkDevice(), &semaphore_info, nullptr, &renderFinished[i]), "Failed to create semaphore 2");
-		VK_CHECK(vkCreateFence(Vk::device->GetVkDevice(), &fence_info, nullptr, &inFlightFences[i]), "Failed to create fence 1");
+		VK_CHECK(vkCreateSemaphore(Vk::device->GetVkDevice(), &semaphore_info, nullptr, &frames[i].ImageAvailable), "Failed to create semaphore 1");
+		VK_CHECK(vkCreateSemaphore(Vk::device->GetVkDevice(), &semaphore_info, nullptr, &frames[i].RenderFinished), "Failed to create semaphore 2");
+		VK_CHECK(vkCreateFence(Vk::device->GetVkDevice(), &fence_info, nullptr, &frames[i].InFlightFence), "Failed to create fence 1");
 	}
 }
 
 void DrawFrame()
 {	
-    vkWaitForFences(Vk::device->GetVkDevice(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-    vkResetFences(Vk::device->GetVkDevice(), 1, &inFlightFences[currentFrame]);
+    vkWaitForFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(Vk::device->GetVkDevice(), Vk::swapChain->GetVkSwapChain(), UINT64_MAX, imageAvailable[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(Vk::device->GetVkDevice(), Vk::swapChain->GetVkSwapChain(), UINT64_MAX, frames[currentFrame].ImageAvailable, VK_NULL_HANDLE, &imageIndex);
 
     if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) 
         vkWaitForFences(Vk::device->GetVkDevice(), 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
 
-    imagesInFlight[imageIndex] = inFlightFences[currentFrame];
-
-	VkSemaphore waitSemaphores[] = { imageAvailable[currentFrame] };
-	VkSemaphore signalSemaphores[] = { renderFinished[currentFrame] };
+    imagesInFlight[imageIndex] = frames[currentFrame].InFlightFence;
 
 	// Render
 	{
@@ -128,16 +123,16 @@ void DrawFrame()
 
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submit_info.waitSemaphoreCount = 1;
-		submit_info.pWaitSemaphores = waitSemaphores;
+		submit_info.pWaitSemaphores = &frames[currentFrame].ImageAvailable;
 		submit_info.pWaitDstStageMask = waitStages;
 		submit_info.commandBufferCount = 1;
 		submit_info.pCommandBuffers = &commandBuffers[imageIndex]->GetVkCommandBuffer();	
 
 		submit_info.signalSemaphoreCount = 1;
-		submit_info.pSignalSemaphores = signalSemaphores;
+		submit_info.pSignalSemaphores = &frames[currentFrame].RenderFinished;
 
-    	vkResetFences(Vk::device->GetVkDevice(), 1, &inFlightFences[currentFrame]);
-		VK_CHECK(vkQueueSubmit(Vk::Queues::graphicsQueue, 1, &submit_info, inFlightFences[currentFrame]), "Failed to submit draw command buffer.");
+    	vkResetFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
+		VK_CHECK(vkQueueSubmit(Vk::Queues::graphicsQueue, 1, &submit_info, frames[currentFrame].InFlightFence), "Failed to submit draw command buffer.");
 	}
 
 	// Present
@@ -146,7 +141,7 @@ void DrawFrame()
 		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
 		present_info.waitSemaphoreCount = 1;
-		present_info.pWaitSemaphores = signalSemaphores;
+		present_info.pWaitSemaphores = &frames[currentFrame].RenderFinished;
 
 		VkSwapchainKHR swapChains[] = { Vk::swapChain->GetVkSwapChain() };
 		present_info.swapchainCount = 1;
@@ -173,9 +168,9 @@ void Window::OnShutdown()
 
 	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		vkDestroySemaphore(Vk::device->GetVkDevice(), imageAvailable[i], nullptr);
-		vkDestroySemaphore(Vk::device->GetVkDevice(), renderFinished[i], nullptr);
-        vkDestroyFence(Vk::device->GetVkDevice(), inFlightFences[i], nullptr);
+		vkDestroySemaphore(Vk::device->GetVkDevice(), frames[i].ImageAvailable, nullptr);
+		vkDestroySemaphore(Vk::device->GetVkDevice(), frames[i].RenderFinished, nullptr);
+        vkDestroyFence(Vk::device->GetVkDevice(), frames[i].InFlightFence, nullptr);
 	}
 
 	for (const Vk::CommandPool* command_pool : commandPools)
