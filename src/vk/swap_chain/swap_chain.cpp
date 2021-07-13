@@ -14,6 +14,7 @@ namespace Vk
 		SupportDetails supportDetails = QuerySwapChainSupport(device->GetVkPhysicalDevice());
 
 		surfaceFormat = ChooseSurfaceFormat(supportDetails.formats);
+		surfaceFormat.format = VK_FORMAT_B8G8R8A8_UNORM;
 		presentMode = ChoosePresentMode(supportDetails.presentModes);
 		extent = ChooseExtent(supportDetails.capabilities);
 
