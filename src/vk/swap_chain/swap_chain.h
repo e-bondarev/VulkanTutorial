@@ -9,6 +9,8 @@ extern VkSwapchainKHR swapChain;
 extern std::vector<VkImage> images;
 
 extern VkFormat imageFormat;
+extern VkSurfaceFormatKHR surfaceFormat;
+extern VkPresentModeKHR presentMode;
 extern VkExtent2D extent;
 
 VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);

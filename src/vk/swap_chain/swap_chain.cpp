@@ -13,6 +13,8 @@ VkSwapchainKHR swapChain = VK_NULL_HANDLE;
 std::vector<VkImage> images;
 VkFormat imageFormat;
 VkExtent2D extent;
+VkSurfaceFormatKHR surfaceFormat;
+VkPresentModeKHR presentMode;
 
 std::vector<VkImageView> imageViews;
 
@@ -103,8 +105,8 @@ void Create()
 {
 	SupportDetails supportDetails = QuerySwapChainSupport(GPU::physicalDevice);
 
-    VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(supportDetails.formats);
-    VkPresentModeKHR presentMode = ChoosePresentMode(supportDetails.presentModes);
+    surfaceFormat = ChooseSurfaceFormat(supportDetails.formats);
+    presentMode = ChoosePresentMode(supportDetails.presentModes);
     extent = ChooseExtent(supportDetails.capabilities);
 
 	uint32_t imageCount = supportDetails.capabilities.minImageCount + 1;
