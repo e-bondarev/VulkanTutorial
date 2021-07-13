@@ -14,6 +14,7 @@ namespace Vk
 		~Pipeline();
 
 		VkPipelineLayout GetVkPipelineLayout() const;
+		VkPipeline GetVkPipeline() const;
 		const RenderPass* GetRenderPass() const;
 
 	private:

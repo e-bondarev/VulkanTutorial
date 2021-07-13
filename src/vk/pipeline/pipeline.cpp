@@ -141,6 +141,11 @@ namespace Vk
 		return vkPipelineLayout;
 	}
 
+	VkPipeline Pipeline::GetVkPipeline() const
+	{
+		return vkPipeline;
+	}
+
 	const RenderPass* Pipeline::GetRenderPass() const
 	{
 		return renderPass;
