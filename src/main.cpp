@@ -15,6 +15,8 @@
 #include "vk/commands/command_pool.h"
 #include "vk/commands/command_buffer.h"
 
+#include "vk/descriptors/descriptor_pool.h"
+
 Vk::Pipeline* pipeline;
 std::vector<Vk::Framebuffer*> framebuffers;
 std::vector<Vk::CommandPool*> commandPools;
@@ -33,6 +35,8 @@ std::vector<Frame> frames;
 std::vector<VkFence> imagesInFlight;
 
 int currentFrame = 0;
+
+Vk::DescriptorPool* descriptorPool;
 
 void Window::OnInit()
 {
@@ -101,6 +105,8 @@ void Window::OnInit()
 		VK_CHECK(vkCreateSemaphore(Vk::device->GetVkDevice(), &semaphore_info, nullptr, &frames[i].RenderFinished), "Failed to create semaphore 2");
 		VK_CHECK(vkCreateFence(Vk::device->GetVkDevice(), &fence_info, nullptr, &frames[i].InFlightFence), "Failed to create fence 1");
 	}
+
+	descriptorPool = new Vk::DescriptorPool();
 }
 
 void DrawFrame()
@@ -164,6 +170,8 @@ void Window::OnUpdate()
 
 void Window::OnShutdown()
 {
+	delete descriptorPool;
+
 	vkDeviceWaitIdle(Vk::device->GetVkDevice());
 
 	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
