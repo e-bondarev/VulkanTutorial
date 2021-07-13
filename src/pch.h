@@ -13,6 +13,7 @@
 #define LOG_OUT(...) 	spdlog::info(__VA_ARGS__)
 #define ERR_OUT(...) 	spdlog::error(__VA_ARGS__)
 #define WARN_OUT(...) 	spdlog::warn(__VA_ARGS__)
+#define TRACE()			LOG_OUT("[Call]: " __FUNCTION__)
 
 #define THROW(...)					\
 	ERR_OUT(__VA_ARGS__);			\

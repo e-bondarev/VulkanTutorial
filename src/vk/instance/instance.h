@@ -2,13 +2,24 @@
 
 #include "../../common.h"
 
-namespace Vk {
-namespace Instance {
+#include <memory>
 
-extern VkInstance instance;
+namespace Vk 
+{
+	class Instance 
+	{
+	public:
+		Instance();
+		~Instance();
 
-void Create();
-void Destroy();
+		VkInstance GetVkInstance() const;
 
-}
+	private:
+		VkInstance vkInstance;
+
+		Instance(const Instance&) = delete;
+		Instance& operator=(const Instance&) = delete;
+	};
+	
+	extern Instance* instance;
 }

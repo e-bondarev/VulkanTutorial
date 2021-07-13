@@ -2,13 +2,19 @@
 
 #include "../../common.h"
 
-namespace Vk {
-namespace Surface {
+namespace Vk
+{
+	class Surface
+	{
+	public:
+		Surface();
+		~Surface();
 
-extern VkSurfaceKHR surface;
+		VkSurfaceKHR GetVkSurface() const;
 
-void Create();
-void Destroy();
+	private:
+		VkSurfaceKHR vkSurface;
+	};
 
-}
+	extern Surface* surface;
 }

@@ -5,7 +5,6 @@
 #include "../surface/surface.h"
 
 namespace Vk {
-namespace SwapChain {
 
 struct SupportDetails
 {
@@ -16,5 +15,4 @@ struct SupportDetails
 
 SupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
 
-}
 }

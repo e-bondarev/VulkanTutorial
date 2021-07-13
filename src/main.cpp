@@ -3,18 +3,18 @@
 
 #include "vk/instance/instance.h"
 
-#include "vk/gpu/gpu.h"
-#include "vk/gpu/queue_family.h"
+#include "vk/device/device.h"
+#include "vk/device/queue_family.h"
 
 #include "vk/surface/surface.h"
 #include "vk/swap_chain/swap_chain.h"
 
 void Window::OnInit()
 {
-	Vk::Instance::Create();
-	Vk::Surface::Create();
-	Vk::GPU::Create();
-	Vk::SwapChain::Create();
+	Vk::instance = new Vk::Instance();
+	Vk::surface = new Vk::Surface();
+	Vk::device = new Vk::Device();
+	Vk::swapChain = new Vk::SwapChain();
 }
 
 void Window::OnUpdate()
@@ -24,10 +24,10 @@ void Window::OnUpdate()
 
 void Window::OnShutdown()
 {
-	Vk::SwapChain::Destroy();
-	Vk::GPU::Destroy();
-	Vk::Surface::Destroy();
-	Vk::Instance::Destroy();
+	delete Vk::swapChain;
+	delete Vk::device;
+	delete Vk::surface;
+	delete Vk::instance;
 }
 
 int main(int amountOfArguments, char *arguments[])

@@ -3,20 +3,26 @@
 #include "../../window/window.h"
 #include "../instance/instance.h"
 
-namespace Vk {
-namespace Surface {
+namespace Vk
+{
+	Surface* surface;
 
-VkSurfaceKHR surface = VK_NULL_HANDLE;
+	Surface::Surface()
+	{
+		VK_CHECK(glfwCreateWindowSurface(instance->GetVkInstance(), Window::glfwWindow, nullptr, &vkSurface), "Failed to create window surface.");
 
-void Create()
-{	
-    VK_CHECK(glfwCreateWindowSurface(Instance::instance, Window::glfwWindow, nullptr, &surface), "Failed to create window surface.");
-}
+		TRACE();
+	}
 
-void Destroy()
-{	
-	vkDestroySurfaceKHR(Instance::instance, surface, nullptr);
-}
+	Surface::~Surface()
+	{
+		vkDestroySurfaceKHR(instance->GetVkInstance(), vkSurface, nullptr);
 
-}
+		TRACE();
+	}
+
+	VkSurfaceKHR Surface::GetVkSurface() const
+	{
+		return vkSurface;
+	}
 }
