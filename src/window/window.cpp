@@ -31,7 +31,6 @@ namespace Window
 		{
 			glfwPollEvents();
 			OnUpdate();
-			glfwSwapBuffers(glfwWindow);
 		}
 	}
 

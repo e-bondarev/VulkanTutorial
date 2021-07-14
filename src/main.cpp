@@ -18,7 +18,6 @@ void Window::OnInit()
 
 void Window::OnUpdate()
 {
-	glfwPollEvents();
 	example->Render();
 }
 
@@ -32,7 +31,7 @@ int main(int amountOfArguments, char *arguments[])
 {
 	Assets::LocateRoot(amountOfArguments, arguments);
 
-	Window::Create(1920, 1080, Window::Mode::Borderless);
+	Window::Create(800, 600, Window::Mode::Windowed);
 	Window::Update();
 	Window::Shutdown();
 
