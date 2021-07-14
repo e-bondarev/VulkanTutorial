@@ -22,7 +22,7 @@ namespace Examples
 		Assets::Text vs_code("assets/shaders/uniform_buffers/uniform_buffers.vert.spv");
 		Assets::Text fs_code("assets/shaders/uniform_buffers/uniform_buffers.frag.spv");
 
-		for (const VkImageView& image_view : Vk::Global::swapChain->GetImageViews())
+		for (int i = 0; i < frameManager->GetAmountOfFrames(); i++)
 		{
 			ubo.setLayout.push_back(new Vk::DescriptorSetLayout());
 			ubo.buffer.push_back(new Vk::Buffer(
@@ -85,21 +85,21 @@ namespace Examples
 
 		for (int i = 0; i < descriptorSet->GetVkDescriptorSets().size(); i++)
 		{
-            VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = ubo.buffer[i]->GetVkBuffer();
-            bufferInfo.offset = 0;
-            bufferInfo.range = sizeof(UBO);
+            VkDescriptorBufferInfo buffer_info{};
+            buffer_info.buffer = ubo.buffer[i]->GetVkBuffer();
+            buffer_info.offset = 0;
+            buffer_info.range = sizeof(UBO);
 
-            VkWriteDescriptorSet descriptorWrite{};
-            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrite.dstSet = descriptorSet->GetVkDescriptorSets()[i];
-            descriptorWrite.dstBinding = 0;
-            descriptorWrite.dstArrayElement = 0;
-            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            descriptorWrite.descriptorCount = 1;
-            descriptorWrite.pBufferInfo = &bufferInfo;
+            VkWriteDescriptorSet descriptor_write{};
+            descriptor_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptor_write.dstSet = descriptorSet->GetVkDescriptorSets()[i];
+            descriptor_write.dstBinding = 0;
+            descriptor_write.dstArrayElement = 0;
+            descriptor_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptor_write.descriptorCount = 1;
+            descriptor_write.pBufferInfo = &buffer_info;
 
-            vkUpdateDescriptorSets(Vk::Global::device->GetVkDevice(), 1, &descriptorWrite, 0, nullptr);
+            vkUpdateDescriptorSets(Vk::Global::device->GetVkDevice(), 1, &descriptor_write, 0, nullptr);
 		}
 	}
 
@@ -113,7 +113,12 @@ namespace Examples
 						command_buffer->BindVertexBuffers({ vertexBuffer }, { 0 });
 						command_buffer->BindIndexBuffer(indexBuffer);
 
-						vkCmdBindDescriptorSets(command_buffer->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipelineLayout(), 0, 1, &descriptorSet->GetVkDescriptorSets()[frameManager->GetCurrentFrameIndex()], 0, nullptr);
+						vkCmdBindDescriptorSets(
+							command_buffer->GetVkCommandBuffer(), 
+							VK_PIPELINE_BIND_POINT_GRAPHICS, 
+							pipeline->GetVkPipelineLayout(), 0, 1, 
+							&descriptorSet->GetVkDescriptorSets()[frameManager->GetCurrentFrameIndex()], 0, nullptr
+						);
 
 							command_buffer->DrawIndexed(indexBuffer->GetAmountOfElements(), 1, 0, 0, 0);
 
