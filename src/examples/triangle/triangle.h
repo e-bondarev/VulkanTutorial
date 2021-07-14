@@ -20,6 +20,9 @@ namespace Examples
 		void Render() override;
 		~Triangle() override;
 
+		void BeforeResize() override;
+		void AfterResize() override;
+
 	private:
 		Vk::Pipeline* pipeline;
 

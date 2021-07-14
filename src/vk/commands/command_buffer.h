@@ -25,17 +25,19 @@ namespace Vk
 
 		void SubmitToQueue(const VkQueue& queue, VkSemaphore* wait_semaphore = nullptr, const VkSemaphore* signal_semaphore = nullptr, VkFence fence = nullptr) const;
 
-		// void BindPipeline(const Pipeline* pipeline) const;
-
 		template <typename... Args>
 		void Draw(Args&&... args) const
 		{
 			vkCmdDraw(vkCommandBuffer, std::forward<Args>(args)...);
 		}
 
+		void Free() const;
+
 		VkCommandBuffer& GetVkCommandBuffer();
 
 	private:
+		CommandPool* commandPool;
+
 		VkCommandBuffer vkCommandBuffer;
 
 		CommandBuffer(const CommandBuffer&) = delete;

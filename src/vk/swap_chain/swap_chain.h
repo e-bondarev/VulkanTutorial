@@ -14,7 +14,7 @@ namespace Vk
 
 			uint32_t AcquireImage(VkSemaphore semaphore);
 
-			void Present(VkSemaphore* wait_semaphores, uint32_t wait_semaphore_count);
+			VkResult Present(VkSemaphore* wait_semaphores, uint32_t wait_semaphore_count);
 
 			uint32_t GetCurrentImageIndex() const;
 

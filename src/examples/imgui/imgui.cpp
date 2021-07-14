@@ -18,6 +18,7 @@ namespace Examples
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 		ImGui::StyleColorsDark();
 
@@ -146,6 +147,13 @@ namespace Examples
 		RecordCommandBuffer(current_command_pool, current_command_buffer, current_framebuffer);
 		Draw(current_command_buffer);
 		Present();
+
+		// Update and Render additional Platform Windows		
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
 	}
 
 	ImGUI::~ImGUI()
@@ -167,5 +175,39 @@ namespace Examples
 		}
 
 		delete pipeline;
+	}
+
+	void ImGUI::BeforeResize()
+	{
+		for (const Vk::Framebuffer* framebuffer : framebuffers)
+			delete framebuffer;
+			
+		for (const Vk::CommandBuffer* command_buffer : commandBuffers)
+			delete command_buffer;
+
+		framebuffers.clear();
+		commandBuffers.clear();
+
+		imagesInFlight.clear();
+
+		delete pipeline;
+	}
+
+	void ImGUI::AfterResize()
+	{
+		glm::vec2 viewport_size = { Vk::Global::swapChain->GetExtent().width, Vk::Global::swapChain->GetExtent().height };
+
+		Assets::Text vs_code("assets/shaders/default.vert.spv");
+		Assets::Text fs_code("assets/shaders/default.frag.spv");
+		
+		pipeline = new Vk::Pipeline(vs_code.GetContent(), fs_code.GetContent(), viewport_size, Vk::Global::swapChain->GetImageFormat());
+
+		for (const VkImageView& image_view : Vk::Global::swapChain->GetImageViews())
+			framebuffers.push_back(new Vk::Framebuffer(image_view, pipeline->GetRenderPass()->GetVkRenderPass(), viewport_size));
+
+		for (Vk::CommandPool* command_pool : commandPools)
+			commandBuffers.push_back(new Vk::CommandBuffer(command_pool));
+
+		imagesInFlight.resize(framebuffers.size(), VK_NULL_HANDLE);
 	}
 }

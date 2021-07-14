@@ -22,6 +22,8 @@ namespace Examples
 	public:
 		ImGUI();
 		void Render() override;
+		void BeforeResize() override;
+		void AfterResize() override;
 		~ImGUI() override;
 
 	private:

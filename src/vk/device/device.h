@@ -23,6 +23,8 @@ namespace Vk
 
 			void CreateLogicalDevice();
 
+			void WaitIdle() const;
+
 			VkPhysicalDevice GetVkPhysicalDevice() const;
 			VkDevice GetVkDevice() const;
 

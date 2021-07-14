@@ -12,8 +12,18 @@ void Window::OnInit()
 {
 	Vk::Init();
 
-	// example = new Examples::Triangle();
-	example = new Examples::ImGUI();
+	example = new Examples::Triangle();
+	// example = new Examples::ImGUI();
+}
+
+void Window::OnResize()
+{
+	Vk::Global::device->WaitIdle();
+
+	example->BeforeResize();
+		delete Vk::Global::swapChain;
+		Vk::Global::swapChain = new Vk::Global::SwapChain();
+	example->AfterResize();
 }
 
 void Window::OnUpdate()

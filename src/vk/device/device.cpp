@@ -135,6 +135,11 @@ namespace Vk
 			vkGetDeviceQueue(vkDevice, Queues::indices.presentFamily.value(), 0, &Queues::presentQueue);
 		}
 
+		void Device::WaitIdle() const
+		{
+			vkDeviceWaitIdle(vkDevice);
+		}
+
 		VkPhysicalDevice Device::GetVkPhysicalDevice() const
 		{
 			return vkPhysicalDevice;

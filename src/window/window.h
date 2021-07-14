@@ -1,11 +1,12 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "../common.h"
 
 namespace Window
 {
 	extern GLFWwindow *glfwWindow;
+	extern glm::vec2 lastSize;
+	extern glm::vec2 size;
 
 	enum class Mode
 	{
@@ -20,5 +21,6 @@ namespace Window
 
 	void OnInit();
 	void OnUpdate();
+	void OnResize();
 	void OnShutdown();
 }

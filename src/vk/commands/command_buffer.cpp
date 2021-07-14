@@ -4,7 +4,7 @@
 
 namespace Vk
 {
-	CommandBuffer::CommandBuffer(CommandPool* command_pool)
+	CommandBuffer::CommandBuffer(CommandPool* command_pool) : commandPool { command_pool }
 	{
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -19,6 +19,8 @@ namespace Vk
 
 	CommandBuffer::~CommandBuffer()
 	{
+		Free();
+
 		TRACE();
 	}
 
@@ -85,10 +87,10 @@ namespace Vk
 		vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
 	}
 
-	// void CommandBuffer::BindPipeline(const Pipeline* pipeline) const
-	// {
-	// 	vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
-	// }
+	void CommandBuffer::Free() const
+	{
+		vkFreeCommandBuffers(Global::device->GetVkDevice(), commandPool->GetVkCommandPool(), 1, &vkCommandBuffer);
+	}
 
 	VkCommandBuffer& CommandBuffer::GetVkCommandBuffer()
 	{

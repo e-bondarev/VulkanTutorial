@@ -6,6 +6,9 @@ namespace Examples
 	{
 	public:
 		virtual void Render() = 0;
+
+		virtual void BeforeResize() = 0;
+		virtual void AfterResize() = 0;
 		
 		virtual ~IExample()
 		{

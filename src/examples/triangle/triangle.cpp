@@ -61,7 +61,17 @@ namespace Examples
 
 	void Triangle::Present()
 	{
-		Vk::Global::swapChain->Present(&frameManager->GetCurrentFrame()->GetRenderFinishedSemaphore(), 1);
+		VkResult result = Vk::Global::swapChain->Present(&frameManager->GetCurrentFrame()->GetRenderFinishedSemaphore(), 1);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) 
+		{
+
+		} 
+		else if (result != VK_SUCCESS) 
+		{
+			THROW("Can't present.");
+		}
+
 		frameManager->NextFrame();
 	}
 
@@ -105,5 +115,39 @@ namespace Examples
 		}
 
 		delete pipeline;
+	}
+
+	void Triangle::BeforeResize()
+	{
+		for (const Vk::Framebuffer* framebuffer : framebuffers)
+			delete framebuffer;
+			
+		for (const Vk::CommandBuffer* command_buffer : commandBuffers)
+			delete command_buffer;
+
+		framebuffers.clear();
+		commandBuffers.clear();
+
+		imagesInFlight.clear();
+
+		delete pipeline;
+	}
+
+	void Triangle::AfterResize()
+	{
+		glm::vec2 viewport_size = { Vk::Global::swapChain->GetExtent().width, Vk::Global::swapChain->GetExtent().height };
+
+		Assets::Text vs_code("assets/shaders/default.vert.spv");
+		Assets::Text fs_code("assets/shaders/default.frag.spv");
+		
+		pipeline = new Vk::Pipeline(vs_code.GetContent(), fs_code.GetContent(), viewport_size, Vk::Global::swapChain->GetImageFormat());
+
+		for (const VkImageView& image_view : Vk::Global::swapChain->GetImageViews())
+			framebuffers.push_back(new Vk::Framebuffer(image_view, pipeline->GetRenderPass()->GetVkRenderPass(), viewport_size));
+
+		for (Vk::CommandPool* command_pool : commandPools)
+			commandBuffers.push_back(new Vk::CommandBuffer(command_pool));
+
+		imagesInFlight.resize(framebuffers.size(), VK_NULL_HANDLE);
 	}
 }
