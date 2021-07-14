@@ -5,6 +5,11 @@
 
 namespace Vk
 {
+	namespace Global
+	{
+		CommandPool* commandPool;
+	}
+
 	CommandPool::CommandPool()
 	{
 		VkCommandPoolCreateInfo pool_info{};

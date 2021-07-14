@@ -28,13 +28,6 @@ namespace Examples
 			Vertex::GetBindingDescriptions(), Vertex::GetAttributeDescriptions()
 		);
 
-		const std::vector<Vertex> vertices = {
-			{{ 0.0f, -0.5f}, { 1.0f, 0.0f, 0.0f }},
-			{{ 0.5f,  0.5f}, { 0.0f, 1.0f, 0.0f }},
-			{{-0.5f,  0.5f}, { 0.0f, 0.0f, 1.0f }}
-		};
-		vertexBuffer = new Vk::Buffer(sizeof(Vertex), static_cast<uint32_t>(vertices.size()), vertices.data());
-
 		for (const VkImageView& image_view : Vk::Global::swapChain->GetImageViews())
 			framebuffers.push_back(new Vk::Framebuffer(image_view, pipeline->GetRenderPass()->GetVkRenderPass(), viewport_size));
 
@@ -44,20 +37,29 @@ namespace Examples
 		for (Vk::CommandPool* command_pool : commandPools)
 			commandBuffers.push_back(new Vk::CommandBuffer(command_pool));
 
+		const std::vector<Vertex> vertices = {
+			{{ 0.0f, -0.5f}, { 1.0f, 0.0f, 0.0f }},
+			{{ 0.5f,  0.5f}, { 0.0f, 1.0f, 0.0f }},
+			{{-0.5f,  0.5f}, { 0.0f, 0.0f, 1.0f }}
+		};
+
+		Vk::Buffer staging_buffer(sizeof(Vertex), static_cast<uint32_t>(vertices.size()), vertices.data());
+		vertexBuffer = new Vk::Buffer(&staging_buffer);
+
 		imagesInFlight.resize(framebuffers.size(), VK_NULL_HANDLE);
 
 		frameManager = new Vk::FrameManager();
 	}
 
 	void VertexBuffers::RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer)
-	{	
+	{
 		command_pool->Reset();
 			command_buffer->Begin();
 				command_buffer->BeginRenderPass(pipeline->GetRenderPass(), framebuffer);
 					command_buffer->BindPipeline(pipeline);
 
 						VkBuffer vertex_buffers[] = { vertexBuffer->GetVkBuffer() };
-						VkDeviceSize offsets[] = {0};
+						VkDeviceSize offsets[] = { 0 };
 						vkCmdBindVertexBuffers(command_buffer->GetVkCommandBuffer(), 0, 1, vertex_buffers, offsets);
 
 					// command_buffer->Draw(3, 1, 0, 0);

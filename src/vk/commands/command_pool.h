@@ -20,4 +20,9 @@ namespace Vk
 		CommandPool(const CommandPool&) = delete;
 		CommandPool& operator=(const CommandPool&) = delete;
 	};
+
+	namespace Global
+	{
+		extern CommandPool* commandPool;
+	}
 }
