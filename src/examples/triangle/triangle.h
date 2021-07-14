@@ -21,10 +21,6 @@ namespace Examples
 		~Triangle() override;
 
 	private:
-		void RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer);
-		void Draw(Vk::CommandBuffer* command_buffer);
-		void Present();
-
 		Vk::Pipeline* pipeline;
 
 		// 3 images.
@@ -35,6 +31,11 @@ namespace Examples
 
 		// 2 frames.
 		Vk::FrameManager* frameManager;
+		
+		// Render
+		void RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer);
+		void Draw(Vk::CommandBuffer* command_buffer);
+		void Present();
 
 		Triangle(const Triangle&) = delete;
 		Triangle& operator=(const Triangle&) = delete;

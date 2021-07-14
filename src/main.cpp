@@ -12,8 +12,8 @@ void Window::OnInit()
 {
 	Vk::Init();
 
-	example = new Examples::Triangle();
-	// example = new Examples::ImGUI();
+	// example = new Examples::Triangle();
+	example = new Examples::ImGUI();
 }
 
 void Window::OnUpdate()

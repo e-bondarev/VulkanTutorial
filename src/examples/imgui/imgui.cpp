@@ -82,46 +82,41 @@ namespace Examples
 			commandBuffers.push_back(new Vk::CommandBuffer(command_pool));
 		}
 
-		// for (int i = 0; i < commandBuffers.size(); i++)
-		// {
-		// 	commandBuffers[i]->Begin();
-		// 		VkRenderPassBeginInfo renderPassInfo{};
-		// 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		// 		renderPassInfo.renderPass = pipeline->GetRenderPass()->GetVkRenderPass();
-		// 		renderPassInfo.framebuffer = framebuffers[i]->GetVkFramebuffer();
-
-		// 		renderPassInfo.renderArea.offset = {0, 0};
-		// 		renderPassInfo.renderArea.extent = Vk::Global::swapChain->GetExtent();
-
-		// 		VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-		// 		renderPassInfo.clearValueCount = 1;
-		// 		renderPassInfo.pClearValues = &clearColor;
-
-		// 		vkCmdBeginRenderPass(commandBuffers[i]->GetVkCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		// 			vkCmdBindPipeline(commandBuffers[i]->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
-		// 			vkCmdDraw(commandBuffers[i]->GetVkCommandBuffer(), 3, 1, 0, 0);
-		// 		vkCmdEndRenderPass(commandBuffers[i]->GetVkCommandBuffer());		
-		// 	commandBuffers[i]->End();
-		// }
-
-		frames.resize(MAX_FRAMES_IN_FLIGHT);
 		imagesInFlight.resize(framebuffers.size(), VK_NULL_HANDLE);
-
-		VkSemaphoreCreateInfo semaphore_info{};
-		semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		VkFenceCreateInfo fence_info{};
-		fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		fence_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			VK_CHECK(vkCreateSemaphore(Vk::Global::device->GetVkDevice(), &semaphore_info, nullptr, &frames[i].ImageAvailable), "Failed to create semaphore 1");
-			VK_CHECK(vkCreateSemaphore(Vk::Global::device->GetVkDevice(), &semaphore_info, nullptr, &frames[i].RenderFinished), "Failed to create semaphore 2");
-			VK_CHECK(vkCreateFence(Vk::Global::device->GetVkDevice(), &fence_info, nullptr, &frames[i].InFlightFence), "Failed to create fence 1");
-		}
+		frameManager = new Vk::FrameManager();
 
 		InitImGui();
+	}
+
+	void ImGUI::RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer)
+	{
+		command_pool->Reset();
+			command_buffer->Begin();
+				command_buffer->BeginRenderPass(pipeline->GetRenderPass(), framebuffer);
+					ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), command_buffer->GetVkCommandBuffer());
+				command_buffer->EndRenderPass();
+			command_buffer->End();
+	}
+
+	void ImGUI::Draw(Vk::CommandBuffer* command_buffer)
+	{
+		Vk::Frame* current_frame = frameManager->GetCurrentFrame();
+
+		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &current_frame->GetInFlightFence());
+		
+		command_buffer->SubmitToQueue(
+			Vk::Global::Queues::graphicsQueue, 
+			&current_frame->GetImageAvailableSemaphore(), 
+			&current_frame->GetRenderFinishedSemaphore(), 
+			current_frame->GetInFlightFence()
+		);
+	}
+
+	void ImGUI::Present()
+	{
+		Vk::Frame* current_frame = frameManager->GetCurrentFrame();
+		Vk::Global::swapChain->Present(&current_frame->GetRenderFinishedSemaphore(), 1);
+		frameManager->NextFrame();
 	}
 
 	void ImGUI::Render()
@@ -132,54 +127,25 @@ namespace Examples
 			ImGui::ShowDemoWindow();
 		ImGui::Render();
 
-		Vk::Global::swapChain->AcquireImage(frames[currentFrame].ImageAvailable);
+		Vk::Frame* current_frame = frameManager->GetCurrentFrame();
+
+		Vk::Global::swapChain->AcquireImage(current_frame->GetImageAvailableSemaphore());
 
 		if (imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] != VK_NULL_HANDLE) 
 			vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()], VK_TRUE, UINT64_MAX);
 
-		vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
-		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
+		vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &current_frame->GetInFlightFence(), VK_TRUE, UINT64_MAX);
+		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &current_frame->GetInFlightFence());
 
-		imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] = frames[currentFrame].InFlightFence;
+		imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] = current_frame->GetInFlightFence();
 
 		Vk::CommandPool* current_command_pool = commandPools[Vk::Global::swapChain->GetCurrentImageIndex()];
 		Vk::CommandBuffer* current_command_buffer = commandBuffers[Vk::Global::swapChain->GetCurrentImageIndex()];	
 		Vk::Framebuffer* current_framebuffer = framebuffers[Vk::Global::swapChain->GetCurrentImageIndex()];
-
-		current_command_pool->Reset();
-		current_command_buffer->Begin();
-			// pipeline->GetRenderPass()->Begin(current_command_buffer, current_framebuffer);
-			current_command_buffer->BeginRenderPass(pipeline->GetRenderPass(), current_framebuffer);
-				ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), current_command_buffer->GetVkCommandBuffer());
-			// pipeline->GetRenderPass()->End(current_command_buffer);
-			current_command_buffer->EndRenderPass();
-		current_command_buffer->End();
-
-		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
 		
-		current_command_buffer->SubmitToQueue(
-			Vk::Global::Queues::graphicsQueue, 
-			&frames[currentFrame].ImageAvailable, 
-			&frames[currentFrame].RenderFinished, 
-			frames[currentFrame].InFlightFence
-		);	
-
-		VkPresentInfoKHR present_info{};
-		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-		present_info.waitSemaphoreCount = 1;
-		present_info.pWaitSemaphores = &frames[currentFrame].RenderFinished;
-
-		VkSwapchainKHR swapChains[] = { Vk::Global::swapChain->GetVkSwapChain() };
-		present_info.swapchainCount = 1;
-		present_info.pSwapchains = swapChains;
-		uint32_t image_index = Vk::Global::swapChain->GetCurrentImageIndex();
-		present_info.pImageIndices = &image_index;
-		present_info.pResults = nullptr; // Optional
-
-		VK_CHECK(vkQueuePresentKHR(Vk::Global::Queues::presentQueue, &present_info), "Failed to present.");
-
-		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+		RecordCommandBuffer(current_command_pool, current_command_buffer, current_framebuffer);
+		Draw(current_command_buffer);
+		Present();
 	}
 
 	ImGUI::~ImGUI()
@@ -188,12 +154,7 @@ namespace Examples
 
 		ShutdownImGui();
 
-		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			vkDestroySemaphore(Vk::Global::device->GetVkDevice(), frames[i].ImageAvailable, nullptr);
-			vkDestroySemaphore(Vk::Global::device->GetVkDevice(), frames[i].RenderFinished, nullptr);
-			vkDestroyFence(Vk::Global::device->GetVkDevice(), frames[i].InFlightFence, nullptr);
-		}
+		delete frameManager;
 
 		for (const Vk::CommandPool* command_pool : commandPools)
 		{

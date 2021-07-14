@@ -7,6 +7,7 @@
 #include "../../vk/commands/command_pool.h"
 #include "../../vk/commands/command_buffer.h"
 #include "../../vk/descriptors/descriptor_pool.h"
+#include "../../vk/frame/frame.h"
 
 #include "../example.h"
 
@@ -20,35 +21,30 @@ namespace Examples
 	{
 	public:
 		ImGUI();
-
 		void Render() override;
-
 		~ImGUI() override;
 
 	private:
 		Vk::Pipeline* pipeline;
+		Vk::DescriptorPool* descriptorPool;
+
+		// 3 images.
 		std::vector<Vk::Framebuffer*> framebuffers;
 		std::vector<Vk::CommandPool*> commandPools;
 		std::vector<Vk::CommandBuffer*> commandBuffers;
-
-		static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
-		struct Frame
-		{
-			VkSemaphore ImageAvailable;
-			VkSemaphore RenderFinished;
-			VkFence InFlightFence;
-		};
-
-		std::vector<Frame> frames;
 		std::vector<VkFence> imagesInFlight;
 
-		Vk::DescriptorPool* descriptorPool;
+		// 2 frames.
+		Vk::FrameManager* frameManager;
 
-		int currentFrame = 0;
-
+		// Init
 		void InitImGui();
 		void ShutdownImGui();
+
+		// Render
+		void RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer);
+		void Draw(Vk::CommandBuffer* command_buffer);
+		void Present();
 
 		ImGUI(const ImGUI&) = delete;
 		ImGUI& operator=(const ImGUI&) = delete;
