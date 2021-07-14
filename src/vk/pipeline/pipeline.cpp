@@ -4,16 +4,25 @@
 
 namespace Vk
 {
-	Pipeline::Pipeline(const std::string& vs_code, const std::string& fs_code, const glm::vec2& viewport_size, VkFormat image_format)
+	Pipeline::Pipeline(
+		const std::string& vs_code, 
+		const std::string& fs_code, 
+		const glm::vec2& viewport_size, 
+		VkFormat image_format, 
+		const BindingDescriptions& binding_descriptions,
+		const AttributeDescriptions& attribute_descriptions
+	)
 	{
 		shader = new Shader(vs_code, fs_code);
 
 		VkPipelineVertexInputStateCreateInfo vertex_input_info{};
 		vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertex_input_info.vertexBindingDescriptionCount = 0;
-		vertex_input_info.pVertexBindingDescriptions = nullptr; // Optional
-		vertex_input_info.vertexAttributeDescriptionCount = 0;
-		vertex_input_info.pVertexAttributeDescriptions = nullptr; // Optional
+
+		vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_descriptions.size());
+		vertex_input_info.pVertexBindingDescriptions = binding_descriptions.data();
+
+		vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size());
+		vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data();
 
 		VkPipelineInputAssemblyStateCreateInfo input_assembly{};
 		input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

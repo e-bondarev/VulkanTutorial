@@ -9,16 +9,31 @@
 #include "../../vk/device/queue_family.h"
 #include "../../vk/swap_chain/swap_chain.h"
 
+#include "vertex.h"
+
 namespace Examples
 {
 	VertexBuffers::VertexBuffers()
 	{
 		glm::vec2 viewport_size = { Vk::Global::swapChain->GetExtent().width, Vk::Global::swapChain->GetExtent().height };
 
-		Assets::Text vs_code("assets/shaders/default.vert.spv");
-		Assets::Text fs_code("assets/shaders/default.frag.spv");
+		Assets::Text vs_code("assets/shaders/vertex_buffers/vertex_buffers.vert.spv");
+		Assets::Text fs_code("assets/shaders/vertex_buffers/vertex_buffers.frag.spv");
 		
-		pipeline = new Vk::Pipeline(vs_code.GetContent(), fs_code.GetContent(), viewport_size, Vk::Global::swapChain->GetImageFormat());
+		pipeline = new Vk::Pipeline(
+			vs_code.GetContent(), 
+			fs_code.GetContent(), 
+			viewport_size, 
+			Vk::Global::swapChain->GetImageFormat(), 
+			Vertex::GetBindingDescriptions(), Vertex::GetAttributeDescriptions()
+		);
+
+		const std::vector<Vertex> vertices = {
+			{{ 0.0f, -0.5f}, { 1.0f, 0.0f, 0.0f }},
+			{{ 0.5f,  0.5f}, { 0.0f, 1.0f, 0.0f }},
+			{{-0.5f,  0.5f}, { 0.0f, 0.0f, 1.0f }}
+		};
+		vertexBuffer = new Vk::Buffer(sizeof(Vertex), static_cast<uint32_t>(vertices.size()), vertices.data());
 
 		for (const VkImageView& image_view : Vk::Global::swapChain->GetImageViews())
 			framebuffers.push_back(new Vk::Framebuffer(image_view, pipeline->GetRenderPass()->GetVkRenderPass(), viewport_size));
@@ -40,7 +55,13 @@ namespace Examples
 			command_buffer->Begin();
 				command_buffer->BeginRenderPass(pipeline->GetRenderPass(), framebuffer);
 					command_buffer->BindPipeline(pipeline);
-					command_buffer->Draw(3, 1, 0, 0);
+
+						VkBuffer vertex_buffers[] = { vertexBuffer->GetVkBuffer() };
+						VkDeviceSize offsets[] = {0};
+						vkCmdBindVertexBuffers(command_buffer->GetVkCommandBuffer(), 0, 1, vertex_buffers, offsets);
+
+					// command_buffer->Draw(3, 1, 0, 0);
+						vkCmdDraw(command_buffer->GetVkCommandBuffer(), static_cast<uint32_t>(3), 1, 0, 0);
 				command_buffer->EndRenderPass();
 			command_buffer->End();
 	}
@@ -104,6 +125,8 @@ namespace Examples
 
 		delete frameManager;
 
+		delete vertexBuffer;
+
 		for (const Vk::CommandPool* command_pool : commandPools)
 		{
 			delete command_pool;
@@ -137,10 +160,16 @@ namespace Examples
 	{
 		glm::vec2 viewport_size = { Vk::Global::swapChain->GetExtent().width, Vk::Global::swapChain->GetExtent().height };
 
-		Assets::Text vs_code("assets/shaders/default.vert.spv");
-		Assets::Text fs_code("assets/shaders/default.frag.spv");
+		Assets::Text vs_code("assets/shaders/vertex_buffers/vertex_buffers.vert.spv");
+		Assets::Text fs_code("assets/shaders/vertex_buffers/vertex_buffers.frag.spv");
 		
-		pipeline = new Vk::Pipeline(vs_code.GetContent(), fs_code.GetContent(), viewport_size, Vk::Global::swapChain->GetImageFormat());
+		pipeline = new Vk::Pipeline(
+			vs_code.GetContent(), 
+			fs_code.GetContent(), 
+			viewport_size, 
+			Vk::Global::swapChain->GetImageFormat(), 
+			Vertex::GetBindingDescriptions(), Vertex::GetAttributeDescriptions()
+		);
 
 		for (const VkImageView& image_view : Vk::Global::swapChain->GetImageViews())
 			framebuffers.push_back(new Vk::Framebuffer(image_view, pipeline->GetRenderPass()->GetVkRenderPass(), viewport_size));

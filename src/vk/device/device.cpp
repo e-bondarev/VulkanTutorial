@@ -73,6 +73,22 @@ namespace Vk
 			}
 		}
 
+		uint32_t Device::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const
+		{
+			VkPhysicalDeviceMemoryProperties memProperties;
+			vkGetPhysicalDeviceMemoryProperties(vkPhysicalDevice, &memProperties);
+
+			for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) 
+			{
+				if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) 
+				{
+					return i;
+				}
+			}
+
+			THROW("Failed to find suitable memory type.");
+		}
+
 		bool Device::IsDeviceSuitable(VkPhysicalDevice device)
 		{
 			Queues::indices = Queues::FindQueueFamilies(device);
@@ -93,43 +109,44 @@ namespace Vk
 		{
 			std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 			std::set<uint32_t> uniqueQueueFamilies =
-				{
-					Queues::indices.graphicsFamily.value(), Queues::indices.presentFamily.value()};
+			{
+				Queues::indices.graphicsFamily.value(), Queues::indices.presentFamily.value()
+			};
 
 			float queuePriority = 1.0f;
 			for (uint32_t queueFamily : uniqueQueueFamilies)
 			{
-				VkDeviceQueueCreateInfo queueCreateInfo{};
-				queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-				queueCreateInfo.queueFamilyIndex = queueFamily;
-				queueCreateInfo.queueCount = 1;
-				queueCreateInfo.pQueuePriorities = &queuePriority;
-				queueCreateInfos.push_back(queueCreateInfo);
+				VkDeviceQueueCreateInfo queue_create_info{};
+				queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+				queue_create_info.queueFamilyIndex = queueFamily;
+				queue_create_info.queueCount = 1;
+				queue_create_info.pQueuePriorities = &queuePriority;
+				queueCreateInfos.push_back(queue_create_info);
 			}
 
-			VkPhysicalDeviceFeatures deviceFeatures{};
+			VkPhysicalDeviceFeatures device_features{};
 
-			VkDeviceCreateInfo createInfo{};
-			createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-			createInfo.pQueueCreateInfos = queueCreateInfos.data();
-			createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+			VkDeviceCreateInfo create_info{};
+			create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+			create_info.pQueueCreateInfos = queueCreateInfos.data();
+			create_info.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 
-			createInfo.pEnabledFeatures = &deviceFeatures;
+			create_info.pEnabledFeatures = &device_features;
 
-			createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-			createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+			create_info.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+			create_info.ppEnabledExtensionNames = deviceExtensions.data();
 
 			if (Validation::enableValidationLayers)
 			{
-				createInfo.enabledLayerCount = static_cast<uint32_t>(Validation::validationLayers.size());
-				createInfo.ppEnabledLayerNames = Validation::validationLayers.data();
+				create_info.enabledLayerCount = static_cast<uint32_t>(Validation::validationLayers.size());
+				create_info.ppEnabledLayerNames = Validation::validationLayers.data();
 			}
 			else
 			{
-				createInfo.enabledLayerCount = 0;
+				create_info.enabledLayerCount = 0;
 			}
 
-			VK_CHECK(vkCreateDevice(vkPhysicalDevice, &createInfo, nullptr, &vkDevice), "Failed to create logical device.");
+			VK_CHECK(vkCreateDevice(vkPhysicalDevice, &create_info, nullptr, &vkDevice), "Failed to create logical device.");
 
 			vkGetDeviceQueue(vkDevice, Queues::indices.graphicsFamily.value(), 0, &Queues::graphicsQueue);
 			vkGetDeviceQueue(vkDevice, Queues::indices.presentFamily.value(), 0, &Queues::presentQueue);

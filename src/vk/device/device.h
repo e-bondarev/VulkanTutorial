@@ -13,10 +13,13 @@ namespace Vk
 			~Device();
 
 			const std::vector<const char *> deviceExtensions =
-				{
-					VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+			{
+				VK_KHR_SWAPCHAIN_EXTENSION_NAME
+			};
 
 			bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+
+			uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 
 			void PickPhysicalDevice();
 			bool IsDeviceSuitable(VkPhysicalDevice device);

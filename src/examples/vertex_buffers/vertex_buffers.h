@@ -3,6 +3,8 @@
 #include "../../common.h"
 
 #include "../../vk/pipeline/pipeline.h"
+#include "../../vk/memory/buffer.h"
+
 #include "../../vk/framebuffer/framebuffer.h"
 #include "../../vk/commands/command_pool.h"
 #include "../../vk/commands/command_buffer.h"
@@ -25,6 +27,7 @@ namespace Examples
 
 	private:
 		Vk::Pipeline* pipeline;
+		Vk::Buffer* vertexBuffer;
 
 		// 3 images.
 		std::vector<Vk::Framebuffer*> framebuffers;
