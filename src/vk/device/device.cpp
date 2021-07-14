@@ -87,6 +87,8 @@ namespace Vk
 			}
 
 			THROW("Failed to find suitable memory type.");
+
+			return 0;
 		}
 
 		bool Device::IsDeviceSuitable(VkPhysicalDevice device)
