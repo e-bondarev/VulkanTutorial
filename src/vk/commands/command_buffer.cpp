@@ -3,6 +3,7 @@
 #include "../device/device.h"
 
 #include "../pipeline/render_pass.h"
+#include "../pipeline/pipeline.h"
 
 namespace Vk
 {
@@ -80,6 +81,11 @@ namespace Vk
 	void CommandBuffer::EndRenderPass() const
 	{
     	vkCmdEndRenderPass(vkCommandBuffer);
+	}
+
+	void CommandBuffer::BindPipeline(const Pipeline* pipeline) const
+	{
+		vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
 	}
 
 	// void CommandBuffer::BindPipeline(const Pipeline* pipeline) const

@@ -82,19 +82,21 @@ namespace Examples
 		Vk::Framebuffer* current_framebuffer = framebuffers[Vk::Global::swapChain->GetCurrentImageIndex()];
 
 		current_command_pool->Reset();
-		current_command_buffer->Begin();
-			current_command_buffer->BeginRenderPass(pipeline->GetRenderPass(), current_framebuffer);
-				vkCmdBindPipeline(current_command_buffer->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
-				vkCmdDraw(current_command_buffer->GetVkCommandBuffer(), 3, 1, 0, 0);
-			current_command_buffer->EndRenderPass();
-		current_command_buffer->End();
+			current_command_buffer->Begin();
+				current_command_buffer->BeginRenderPass(pipeline->GetRenderPass(), current_framebuffer);
+					current_command_buffer->BindPipeline(pipeline);
+					current_command_buffer->Draw(3, 1, 0, 0);
+				current_command_buffer->EndRenderPass();
+			current_command_buffer->End();
 	}
 
 	void Triangle::Draw()
 	{
+		Vk::CommandBuffer* current_command_buffer = commandBuffers[Vk::Global::swapChain->GetCurrentImageIndex()];	
+
 		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
 
-		commandBuffers[Vk::Global::swapChain->GetCurrentImageIndex()]->SubmitToQueue(
+		current_command_buffer->SubmitToQueue(
 			Vk::Global::Queues::graphicsQueue, 
 			&frames[currentFrame].ImageAvailable, 
 			&frames[currentFrame].RenderFinished, 
