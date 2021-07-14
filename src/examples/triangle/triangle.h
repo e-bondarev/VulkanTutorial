@@ -21,8 +21,8 @@ namespace Examples
 		~Triangle() override;
 
 	private:
-		void RecordCommandBuffer();
-		void Draw();
+		void RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer);
+		void Draw(Vk::CommandBuffer* command_buffer);
 		void Present();
 
 		Vk::Pipeline* pipeline;

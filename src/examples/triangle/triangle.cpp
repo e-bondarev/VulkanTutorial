@@ -75,28 +75,22 @@ namespace Examples
 		}
 	}
 
-	void Triangle::RecordCommandBuffer()
+	void Triangle::RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer)
 	{	
-		Vk::CommandPool* current_command_pool = commandPools[Vk::Global::swapChain->GetCurrentImageIndex()];
-		Vk::CommandBuffer* current_command_buffer = commandBuffers[Vk::Global::swapChain->GetCurrentImageIndex()];	
-		Vk::Framebuffer* current_framebuffer = framebuffers[Vk::Global::swapChain->GetCurrentImageIndex()];
-
-		current_command_pool->Reset();
-			current_command_buffer->Begin();
-				current_command_buffer->BeginRenderPass(pipeline->GetRenderPass(), current_framebuffer);
-					current_command_buffer->BindPipeline(pipeline);
-					current_command_buffer->Draw(3, 1, 0, 0);
-				current_command_buffer->EndRenderPass();
-			current_command_buffer->End();
+		command_pool->Reset();
+			command_buffer->Begin();
+				command_buffer->BeginRenderPass(pipeline->GetRenderPass(), framebuffer);
+					command_buffer->BindPipeline(pipeline);
+					command_buffer->Draw(3, 1, 0, 0);
+				command_buffer->EndRenderPass();
+			command_buffer->End();
 	}
 
-	void Triangle::Draw()
+	void Triangle::Draw(Vk::CommandBuffer* command_buffer)
 	{
-		Vk::CommandBuffer* current_command_buffer = commandBuffers[Vk::Global::swapChain->GetCurrentImageIndex()];	
-
 		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
 
-		current_command_buffer->SubmitToQueue(
+		command_buffer->SubmitToQueue(
 			Vk::Global::Queues::graphicsQueue, 
 			&frames[currentFrame].ImageAvailable, 
 			&frames[currentFrame].RenderFinished, 
@@ -128,16 +122,22 @@ namespace Examples
 	{		
 		Vk::Global::swapChain->AcquireImage(frames[currentFrame].ImageAvailable);
 
-		if (imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] != VK_NULL_HANDLE) 
-			vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()], VK_TRUE, UINT64_MAX);
+		uint32_t image_index = Vk::Global::swapChain->GetCurrentImageIndex();
+
+		if (imagesInFlight[image_index] != VK_NULL_HANDLE) 
+			vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &imagesInFlight[image_index], VK_TRUE, UINT64_MAX);
 
 		vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
 		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
 
-		imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] = frames[currentFrame].InFlightFence;
+		imagesInFlight[image_index] = frames[currentFrame].InFlightFence;
 
-		RecordCommandBuffer();
-		Draw();
+		Vk::CommandPool* current_command_pool = commandPools[image_index];
+		Vk::CommandBuffer* current_command_buffer = commandBuffers[image_index];	
+		Vk::Framebuffer* current_framebuffer = framebuffers[image_index];
+
+		RecordCommandBuffer(current_command_pool, current_command_buffer, current_framebuffer);
+		Draw(current_command_buffer);
 		Present();
 	}
 

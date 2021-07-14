@@ -4,12 +4,11 @@
 
 #include "command_pool.h"
 #include "../framebuffer/framebuffer.h"
+#include "../pipeline/render_pass.h"
+#include "../pipeline/pipeline.h"
 
 namespace Vk
 {
-	class RenderPass;
-	class Pipeline;
-
 	class CommandBuffer
 	{
 	public:

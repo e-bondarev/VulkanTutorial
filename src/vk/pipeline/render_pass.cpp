@@ -54,24 +54,6 @@ namespace Vk
 		TRACE();
 	}
 
-	void RenderPass::Begin(CommandBuffer* command_buffer, Framebuffer* framebuffer) const
-	{
-        VkRenderPassBeginInfo submit_info = {};
-        submit_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        submit_info.renderPass = vkRenderPass;
-        submit_info.framebuffer = framebuffer->GetVkFramebuffer();
-        submit_info.renderArea.extent = { static_cast<uint32_t>(framebuffer->GetSize().x), static_cast<uint32_t>(framebuffer->GetSize().y) };
-        submit_info.clearValueCount = 1;
-		VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-        submit_info.pClearValues = &clearColor;
-        vkCmdBeginRenderPass(command_buffer->GetVkCommandBuffer(), &submit_info, VK_SUBPASS_CONTENTS_INLINE);
-	}
-
-	void RenderPass::End(CommandBuffer* command_buffer) const
-	{
-    	vkCmdEndRenderPass(command_buffer->GetVkCommandBuffer());
-	}
-
 	VkRenderPass RenderPass::GetVkRenderPass() const
 	{
 		return vkRenderPass;

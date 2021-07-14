@@ -2,9 +2,6 @@
 
 #include "../device/device.h"
 
-#include "../pipeline/render_pass.h"
-#include "../pipeline/pipeline.h"
-
 namespace Vk
 {
 	CommandBuffer::CommandBuffer(CommandPool* command_pool)

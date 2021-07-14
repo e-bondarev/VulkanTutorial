@@ -148,9 +148,11 @@ namespace Examples
 
 		current_command_pool->Reset();
 		current_command_buffer->Begin();
-			pipeline->GetRenderPass()->Begin(current_command_buffer, current_framebuffer);
+			// pipeline->GetRenderPass()->Begin(current_command_buffer, current_framebuffer);
+			current_command_buffer->BeginRenderPass(pipeline->GetRenderPass(), current_framebuffer);
 				ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), current_command_buffer->GetVkCommandBuffer());
-			pipeline->GetRenderPass()->End(current_command_buffer);
+			// pipeline->GetRenderPass()->End(current_command_buffer);
+			current_command_buffer->EndRenderPass();
 		current_command_buffer->End();
 
 		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
