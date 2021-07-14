@@ -10,6 +10,10 @@ namespace Vk
 		SwapChain();
 		~SwapChain();
 
+		void AcquireImage(VkSemaphore semaphore);
+
+		uint32_t GetCurrentImageIndex() const;
+
 		VkSwapchainKHR GetVkSwapChain() const;
 		VkFormat GetImageFormat() const;
 		VkSurfaceFormatKHR GetSurfaceFormat() const;
@@ -19,6 +23,8 @@ namespace Vk
 		const std::vector<VkImageView>& GetImageViews() const;
 
 	private:
+		uint32_t imageIndex;
+
 		VkSwapchainKHR swapChain;
 
 		VkFormat imageFormat;

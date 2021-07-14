@@ -40,7 +40,56 @@ std::vector<VkFence> imagesInFlight;
 
 int currentFrame = 0;
 
-Vk::DescriptorPool* descriptorPool;
+struct {
+	Vk::DescriptorPool* descriptorPool;
+} imGuiState;
+
+void InitImGui()
+{
+	imGuiState.descriptorPool = new Vk::DescriptorPool();
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForVulkan(Window::glfwWindow, true);
+    ImGui_ImplVulkan_InitInfo init_info = {};
+    init_info.Instance = Vk::instance->GetVkInstance();
+    init_info.PhysicalDevice = Vk::device->GetVkPhysicalDevice();
+    init_info.Device = Vk::device->GetVkDevice();
+    init_info.QueueFamily = Vk::Queues::indices.graphicsFamily.value();
+    init_info.Queue = Vk::Queues::graphicsQueue;
+    init_info.PipelineCache = nullptr;
+    init_info.DescriptorPool = imGuiState.descriptorPool->GetVkDescriptorPool();
+    init_info.Allocator = nullptr;
+    init_info.MinImageCount = 2;
+    init_info.ImageCount = 2;
+    init_info.CheckVkResultFn = nullptr;
+    ImGui_ImplVulkan_Init(&init_info, pipeline->GetRenderPass()->GetVkRenderPass());
+
+	Vk::CommandPool my_command_pool;
+	Vk::CommandBuffer my_command_buffer(&my_command_pool);
+
+	my_command_buffer.Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+		ImGui_ImplVulkan_CreateFontsTexture(my_command_buffer.GetVkCommandBuffer());
+	my_command_buffer.End();
+
+	my_command_buffer.SubmitToQueue(Vk::Queues::graphicsQueue);
+
+	vkDeviceWaitIdle(Vk::device->GetVkDevice());
+	ImGui_ImplVulkan_DestroyFontUploadObjects();
+}
+
+void ShutdownImGui()
+{	
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+	delete imGuiState.descriptorPool;
+}
 
 void Window::OnInit()
 {
@@ -110,70 +159,22 @@ void Window::OnInit()
 		VK_CHECK(vkCreateFence(Vk::device->GetVkDevice(), &fence_info, nullptr, &frames[i].InFlightFence), "Failed to create fence 1");
 	}
 
-	descriptorPool = new Vk::DescriptorPool();
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    // ImGui::StyleColorsClassic();
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForVulkan(Window::glfwWindow, true);
-    ImGui_ImplVulkan_InitInfo init_info = {};
-    init_info.Instance = Vk::instance->GetVkInstance();
-    init_info.PhysicalDevice = Vk::device->GetVkPhysicalDevice();
-    init_info.Device = Vk::device->GetVkDevice();
-    init_info.QueueFamily = Vk::Queues::indices.graphicsFamily.value();
-    init_info.Queue = Vk::Queues::graphicsQueue;
-    init_info.PipelineCache = nullptr;
-    init_info.DescriptorPool = descriptorPool->GetVkDescriptorPool();
-    init_info.Allocator = nullptr;
-    init_info.MinImageCount = 2;
-    init_info.ImageCount = 2;
-    init_info.CheckVkResultFn = nullptr;
-    ImGui_ImplVulkan_Init(&init_info, pipeline->GetRenderPass()->GetVkRenderPass());
-
-    {
-		Vk::CommandPool my_command_pool;
-		Vk::CommandBuffer my_command_buffer(&my_command_pool);
-
-		my_command_buffer.Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-        	ImGui_ImplVulkan_CreateFontsTexture(my_command_buffer.GetVkCommandBuffer());
-		my_command_buffer.End();
-
-		my_command_buffer.SubmitToQueue(Vk::Queues::graphicsQueue);
-
-        vkDeviceWaitIdle(Vk::device->GetVkDevice());
-        ImGui_ImplVulkan_DestroyFontUploadObjects();
-    }
+	// InitImGui();
 }
 
-void Render(uint32_t& image_index)
+void Render()
 {
-	VkSubmitInfo submit_info{};
-	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	submit_info.waitSemaphoreCount = 1;
-	submit_info.pWaitSemaphores = &frames[currentFrame].ImageAvailable;
-	submit_info.pWaitDstStageMask = waitStages;
-	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &commandBuffers[image_index]->GetVkCommandBuffer();	
-
-	submit_info.signalSemaphoreCount = 1;
-	submit_info.pSignalSemaphores = &frames[currentFrame].RenderFinished;
-
 	vkResetFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
-	VK_CHECK(vkQueueSubmit(Vk::Queues::graphicsQueue, 1, &submit_info, frames[currentFrame].InFlightFence), "Failed to submit draw command buffer.");
+
+	commandBuffers[Vk::swapChain->GetCurrentImageIndex()]->SubmitToQueue(
+		Vk::Queues::graphicsQueue, 
+		&frames[currentFrame].ImageAvailable, 
+		&frames[currentFrame].RenderFinished, 
+		frames[currentFrame].InFlightFence
+	);
 }
 
-void Present(uint32_t& image_index)
+void Present()
 {
 	VkPresentInfoKHR present_info{};
 	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -184,13 +185,16 @@ void Present(uint32_t& image_index)
 	VkSwapchainKHR swapChains[] = { Vk::swapChain->GetVkSwapChain() };
 	present_info.swapchainCount = 1;
 	present_info.pSwapchains = swapChains;
+	uint32_t image_index = Vk::swapChain->GetCurrentImageIndex();
 	present_info.pImageIndices = &image_index;
 	present_info.pResults = nullptr; // Optional
 
 	VK_CHECK(vkQueuePresentKHR(Vk::Queues::presentQueue, &present_info), "Failed to present.");
+
+    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void DrawFrame()
+void DrawImGuiFrame()
 {
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -198,20 +202,19 @@ void DrawFrame()
 		ImGui::ShowDemoWindow();
 	ImGui::Render();
 
-    uint32_t image_index;
-    vkAcquireNextImageKHR(Vk::device->GetVkDevice(), Vk::swapChain->GetVkSwapChain(), UINT64_MAX, frames[currentFrame].ImageAvailable, VK_NULL_HANDLE, &image_index);
+	Vk::swapChain->AcquireImage(frames[currentFrame].ImageAvailable);
 
-	Vk::CommandPool* current_command_pool = commandPools[currentFrame];
-	Vk::CommandBuffer* current_command_buffer = commandBuffers[currentFrame];	
-	Vk::Framebuffer* current_framebuffer = framebuffers[image_index];
-
-    if (imagesInFlight[image_index] != VK_NULL_HANDLE) 
-        vkWaitForFences(Vk::device->GetVkDevice(), 1, &imagesInFlight[image_index], VK_TRUE, UINT64_MAX);
+    if (imagesInFlight[Vk::swapChain->GetCurrentImageIndex()] != VK_NULL_HANDLE) 
+        vkWaitForFences(Vk::device->GetVkDevice(), 1, &imagesInFlight[Vk::swapChain->GetCurrentImageIndex()], VK_TRUE, UINT64_MAX);
 
     vkWaitForFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
 
-    imagesInFlight[image_index] = frames[currentFrame].InFlightFence;
+    imagesInFlight[Vk::swapChain->GetCurrentImageIndex()] = frames[currentFrame].InFlightFence;
+
+	Vk::CommandPool* current_command_pool = commandPools[currentFrame];
+	Vk::CommandBuffer* current_command_buffer = commandBuffers[currentFrame];	
+	Vk::Framebuffer* current_framebuffer = framebuffers[Vk::swapChain->GetCurrentImageIndex()];
 
 	current_command_pool->Reset();
 	current_command_buffer->Begin();
@@ -219,6 +222,8 @@ void DrawFrame()
 			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), current_command_buffer->GetVkCommandBuffer());
 		pipeline->GetRenderPass()->End(current_command_buffer);
 	current_command_buffer->End();
+
+	vkResetFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
 	
 	current_command_buffer->SubmitToQueue(
 		Vk::Queues::graphicsQueue, 
@@ -227,9 +232,39 @@ void DrawFrame()
 		frames[currentFrame].InFlightFence
 	);
 
-	Present(image_index);
+	Present();
+}
 
-    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+void RecordCommandBuffer()
+{
+	Vk::CommandPool* current_command_pool = commandPools[currentFrame];
+	Vk::CommandBuffer* current_command_buffer = commandBuffers[currentFrame];	
+	Vk::Framebuffer* current_framebuffer = framebuffers[Vk::swapChain->GetCurrentImageIndex()];
+
+	current_command_pool->Reset();
+	current_command_buffer->Begin();
+		pipeline->GetRenderPass()->Begin(current_command_buffer, current_framebuffer);
+			vkCmdBindPipeline(current_command_buffer->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
+			vkCmdDraw(current_command_buffer->GetVkCommandBuffer(), 3, 1, 0, 0);
+		pipeline->GetRenderPass()->End(current_command_buffer);
+	current_command_buffer->End();
+}
+
+void DrawFrame()
+{
+	Vk::swapChain->AcquireImage(frames[currentFrame].ImageAvailable);
+
+    if (imagesInFlight[Vk::swapChain->GetCurrentImageIndex()] != VK_NULL_HANDLE) 
+        vkWaitForFences(Vk::device->GetVkDevice(), 1, &imagesInFlight[Vk::swapChain->GetCurrentImageIndex()], VK_TRUE, UINT64_MAX);
+
+    vkWaitForFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
+
+    imagesInFlight[Vk::swapChain->GetCurrentImageIndex()] = frames[currentFrame].InFlightFence;
+	
+	RecordCommandBuffer();
+	Render();
+	Present();
 }
 
 void Window::OnUpdate()
@@ -237,17 +272,14 @@ void Window::OnUpdate()
 	glfwPollEvents();
 
 	DrawFrame();
+	// DrawImGuiFrame();
 }
 
 void Window::OnShutdown()
 {
 	vkDeviceWaitIdle(Vk::device->GetVkDevice());
-	
-    ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
 
-	delete descriptorPool;
+	// ShutdownImGui();
 
 	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{

@@ -80,6 +80,16 @@ namespace Vk
 		TRACE();
 	}
 
+	void SwapChain::AcquireImage(VkSemaphore semaphore)
+	{
+    	vkAcquireNextImageKHR(Vk::device->GetVkDevice(), Vk::swapChain->GetVkSwapChain(), UINT64_MAX, semaphore, VK_NULL_HANDLE, &imageIndex);
+	}
+
+	uint32_t SwapChain::GetCurrentImageIndex() const
+	{
+		return imageIndex;
+	}
+
 	VkSurfaceFormatKHR SwapChain::ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats)
 	{
 		for (const auto &availableFormat : availableFormats)
