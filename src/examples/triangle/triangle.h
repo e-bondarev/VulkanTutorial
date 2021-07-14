@@ -7,6 +7,8 @@
 #include "../../vk/commands/command_pool.h"
 #include "../../vk/commands/command_buffer.h"
 
+#include "../../vk/frame/frame.h"
+
 #include "../example.h"
 
 namespace Examples
@@ -15,9 +17,7 @@ namespace Examples
 	{
 	public:
 		Triangle();
-
 		void Render() override;
-
 		~Triangle() override;
 
 	private:
@@ -26,23 +26,15 @@ namespace Examples
 		void Present();
 
 		Vk::Pipeline* pipeline;
+
+		// 3 images.
 		std::vector<Vk::Framebuffer*> framebuffers;
 		std::vector<Vk::CommandPool*> commandPools;
 		std::vector<Vk::CommandBuffer*> commandBuffers;
-
-		static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
-		struct Frame
-		{
-			VkSemaphore ImageAvailable;
-			VkSemaphore RenderFinished;
-			VkFence InFlightFence;
-		};
-
-		std::vector<Frame> frames;
 		std::vector<VkFence> imagesInFlight;
 
-		int currentFrame = 0;
+		// 2 frames.
+		Vk::FrameManager* frameManager;
 
 		Triangle(const Triangle&) = delete;
 		Triangle& operator=(const Triangle&) = delete;

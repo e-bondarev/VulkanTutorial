@@ -82,9 +82,27 @@ namespace Vk
 			TRACE();
 		}
 
-		void SwapChain::AcquireImage(VkSemaphore semaphore)
+		uint32_t SwapChain::AcquireImage(VkSemaphore semaphore)
 		{
 			vkAcquireNextImageKHR(device->GetVkDevice(), vkSwapChain, UINT64_MAX, semaphore, VK_NULL_HANDLE, &imageIndex);
+
+			return imageIndex;
+		}
+
+		void SwapChain::Present(VkSemaphore* wait_semaphores, uint32_t wait_semaphore_count)
+		{			
+			VkPresentInfoKHR present_info{};
+			present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+			present_info.waitSemaphoreCount = wait_semaphore_count;
+			present_info.pWaitSemaphores = wait_semaphores;
+
+			present_info.swapchainCount = 1;
+			present_info.pSwapchains = &vkSwapChain;
+			present_info.pImageIndices = &imageIndex;
+			present_info.pResults = nullptr;
+
+			VK_CHECK(vkQueuePresentKHR(Vk::Global::Queues::presentQueue, &present_info), "Failed to present.");
 		}
 
 		uint32_t SwapChain::GetCurrentImageIndex() const

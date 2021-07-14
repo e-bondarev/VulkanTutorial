@@ -12,7 +12,9 @@ namespace Vk
 			SwapChain();
 			~SwapChain();
 
-			void AcquireImage(VkSemaphore semaphore);
+			uint32_t AcquireImage(VkSemaphore semaphore);
+
+			void Present(VkSemaphore* wait_semaphores, uint32_t wait_semaphore_count);
 
 			uint32_t GetCurrentImageIndex() const;
 
