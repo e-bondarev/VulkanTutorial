@@ -2,6 +2,9 @@
 
 #include "../../common.h"
 
+#include "../framebuffer/framebuffer.h"
+#include "../commands/command_buffer.h"
+
 namespace Vk
 {
 	class RenderPass
@@ -11,6 +14,9 @@ namespace Vk
 		~RenderPass();
 
 		VkRenderPass GetVkRenderPass() const;
+
+		void Begin(CommandBuffer* command_buffer, Framebuffer* framebuffer) const;
+		void End(CommandBuffer* command_buffer) const;
 
 	private:
 		VkRenderPass vkRenderPass;

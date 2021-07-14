@@ -143,20 +143,11 @@ void Window::OnInit()
 		Vk::CommandPool my_command_pool;
 		Vk::CommandBuffer my_command_buffer(&my_command_pool);
 
-        VK_CHECK(vkResetCommandPool(Vk::device->GetVkDevice(), my_command_pool.GetVkCommandPool(), 0), "Failed to reset command pool.");
-        VkCommandBufferBeginInfo begin_info = {};
-        begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        VK_CHECK(vkBeginCommandBuffer(my_command_buffer.GetVkCommandBuffer(), &begin_info), "Failed to begin command buffer.");
+		my_command_buffer.Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+        	ImGui_ImplVulkan_CreateFontsTexture(my_command_buffer.GetVkCommandBuffer());
+		my_command_buffer.End();
 
-        ImGui_ImplVulkan_CreateFontsTexture(my_command_buffer.GetVkCommandBuffer());
-
-        VkSubmitInfo end_info = {};
-        end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        end_info.commandBufferCount = 1;
-        end_info.pCommandBuffers = &my_command_buffer.GetVkCommandBuffer();
-        VK_CHECK(vkEndCommandBuffer(my_command_buffer.GetVkCommandBuffer()), "Failed to end command buffer.");
-        VK_CHECK(vkQueueSubmit(Vk::Queues::graphicsQueue, 1, &end_info, VK_NULL_HANDLE), "Failed to submit queue.");
+		my_command_buffer.SubmitToQueue(Vk::Queues::graphicsQueue);
 
         vkDeviceWaitIdle(Vk::device->GetVkDevice());
         ImGui_ImplVulkan_DestroyFontUploadObjects();
@@ -204,63 +195,39 @@ void DrawFrame()
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-
 		ImGui::ShowDemoWindow();
-	
 	ImGui::Render();
-	ImDrawData* draw_data = ImGui::GetDrawData();
-	
-    uint32_t imageIndex;
-    vkAcquireNextImageKHR(Vk::device->GetVkDevice(), Vk::swapChain->GetVkSwapChain(), UINT64_MAX, frames[currentFrame].ImageAvailable, VK_NULL_HANDLE, &imageIndex);
 
-    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) 
-        vkWaitForFences(Vk::device->GetVkDevice(), 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+    uint32_t image_index;
+    vkAcquireNextImageKHR(Vk::device->GetVkDevice(), Vk::swapChain->GetVkSwapChain(), UINT64_MAX, frames[currentFrame].ImageAvailable, VK_NULL_HANDLE, &image_index);
+
+	Vk::CommandPool* current_command_pool = commandPools[currentFrame];
+	Vk::CommandBuffer* current_command_buffer = commandBuffers[currentFrame];	
+	Vk::Framebuffer* current_framebuffer = framebuffers[image_index];
+
+    if (imagesInFlight[image_index] != VK_NULL_HANDLE) 
+        vkWaitForFences(Vk::device->GetVkDevice(), 1, &imagesInFlight[image_index], VK_TRUE, UINT64_MAX);
 
     vkWaitForFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(Vk::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
 
-    imagesInFlight[imageIndex] = frames[currentFrame].InFlightFence;
+    imagesInFlight[image_index] = frames[currentFrame].InFlightFence;
 
-    {
-        VK_CHECK(vkResetCommandPool(Vk::device->GetVkDevice(), commandPools[currentFrame]->GetVkCommandPool(), 0), "Failed to reset command pool.");
-        VkCommandBufferBeginInfo info = {};
-        info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        VK_CHECK(vkBeginCommandBuffer(commandBuffers[currentFrame]->GetVkCommandBuffer(), &info), "Failed to begin command buffer.");
-    }
-    {
-        VkRenderPassBeginInfo submit_info = {};
-        submit_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        submit_info.renderPass = pipeline->GetRenderPass()->GetVkRenderPass();
-        submit_info.framebuffer = framebuffers[imageIndex]->GetVkFramebuffer();
-        submit_info.renderArea.extent = Vk::swapChain->GetExtent();
-        submit_info.clearValueCount = 1;
-		VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-        submit_info.pClearValues = &clearColor;
-        vkCmdBeginRenderPass(commandBuffers[currentFrame]->GetVkCommandBuffer(), &submit_info, VK_SUBPASS_CONTENTS_INLINE);
-    }
+	current_command_pool->Reset();
+	current_command_buffer->Begin();
+		pipeline->GetRenderPass()->Begin(current_command_buffer, current_framebuffer);
+			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), current_command_buffer->GetVkCommandBuffer());
+		pipeline->GetRenderPass()->End(current_command_buffer);
+	current_command_buffer->End();
+	
+	current_command_buffer->SubmitToQueue(
+		Vk::Queues::graphicsQueue, 
+		&frames[currentFrame].ImageAvailable, 
+		&frames[currentFrame].RenderFinished, 
+		frames[currentFrame].InFlightFence
+	);
 
-    ImGui_ImplVulkan_RenderDrawData(draw_data, commandBuffers[currentFrame]->GetVkCommandBuffer());
-
-    vkCmdEndRenderPass(commandBuffers[currentFrame]->GetVkCommandBuffer());
-    {
-        VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        VkSubmitInfo submit_info = {};
-        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submit_info.waitSemaphoreCount = 1;
-        submit_info.pWaitSemaphores = &frames[currentFrame].ImageAvailable;
-        submit_info.pWaitDstStageMask = &wait_stage;
-        submit_info.commandBufferCount = 1;
-        submit_info.pCommandBuffers = &commandBuffers[currentFrame]->GetVkCommandBuffer();
-        submit_info.signalSemaphoreCount = 1;
-        submit_info.pSignalSemaphores = &frames[currentFrame].RenderFinished;
-
-        VK_CHECK(vkEndCommandBuffer(commandBuffers[currentFrame]->GetVkCommandBuffer()), "Failed to end command buffer.");
-        VK_CHECK(vkQueueSubmit(Vk::Queues::graphicsQueue, 1, &submit_info, frames[currentFrame].InFlightFence), "Failed to submit queue.");
-    }
-
-	// Render(imageIndex);
-	Present(imageIndex);
+	Present(image_index);
 
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }

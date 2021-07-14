@@ -22,11 +22,11 @@ namespace Vk
 		TRACE();
 	}
 
-	void CommandBuffer::Begin() const
+	void CommandBuffer::Begin(VkCommandBufferUsageFlags flags) const
 	{		
 		VkCommandBufferBeginInfo begin_info{};
 		begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		begin_info.flags = 0; // Optional
+		begin_info.flags = flags; // Optional
 		begin_info.pInheritanceInfo = nullptr; // Optional
 
 		VK_CHECK(vkBeginCommandBuffer(vkCommandBuffer, &begin_info), "Failed to begin recording command buffer.");
@@ -35,6 +35,31 @@ namespace Vk
 	void CommandBuffer::End() const
 	{
 		VK_CHECK(vkEndCommandBuffer(vkCommandBuffer), "Failed to record command buffer.");
+	}
+
+	void CommandBuffer::SubmitToQueue(const VkQueue& queue, VkSemaphore* wait_semaphore, const VkSemaphore* signal_semaphore, VkFence fence) const
+	{
+        VkSubmitInfo submit_info = {};
+        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.commandBufferCount = 1;
+        submit_info.pCommandBuffers = &vkCommandBuffer;
+
+		VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+		if (wait_semaphore)
+		{
+        	submit_info.waitSemaphoreCount = 1;
+        	submit_info.pWaitSemaphores = wait_semaphore;
+        	submit_info.pWaitDstStageMask = &wait_stage;			
+		}
+
+		if (signal_semaphore)
+		{
+			submit_info.signalSemaphoreCount = 1;
+			submit_info.pSignalSemaphores = signal_semaphore;
+		}
+
+        VK_CHECK(vkQueueSubmit(queue, 1, &submit_info, fence), "Failed to submit queue.");
 	}
 
 	VkCommandBuffer& CommandBuffer::GetVkCommandBuffer()

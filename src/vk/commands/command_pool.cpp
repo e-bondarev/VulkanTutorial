@@ -24,6 +24,11 @@ namespace Vk
 		TRACE();
 	}
 
+	void CommandPool::Reset() const
+	{
+        VK_CHECK(vkResetCommandPool(Vk::device->GetVkDevice(), vkCommandPool, 0), "Failed to reset command pool.");
+	}
+
 	VkCommandPool CommandPool::GetVkCommandPool() const
 	{
 		return vkCommandPool;

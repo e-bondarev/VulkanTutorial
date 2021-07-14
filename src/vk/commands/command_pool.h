@@ -10,6 +10,8 @@ namespace Vk
 		CommandPool();
 		~CommandPool();
 
+		void Reset() const;
+
 		VkCommandPool GetVkCommandPool() const;
 
 	private:

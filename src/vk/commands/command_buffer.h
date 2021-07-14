@@ -12,8 +12,10 @@ namespace Vk
 		CommandBuffer(CommandPool* command_pool);
 		~CommandBuffer();
 
-		void Begin() const;
+		void Begin(VkCommandBufferUsageFlags flags = 0) const;
 		void End() const;
+
+		void SubmitToQueue(const VkQueue& queue, VkSemaphore* wait_semaphore = nullptr, const VkSemaphore* signal_semaphore = nullptr, VkFence fence = nullptr) const;
 
 		VkCommandBuffer& GetVkCommandBuffer();
 

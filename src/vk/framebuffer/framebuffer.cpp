@@ -4,7 +4,7 @@
 
 namespace Vk
 {
-	Framebuffer::Framebuffer(VkImageView image_view, VkRenderPass render_pass, const glm::vec2& size)
+	Framebuffer::Framebuffer(VkImageView image_view, VkRenderPass render_pass, const glm::vec2& size) : size { size }
 	{
 		VkFramebufferCreateInfo framebuffer_info{};
 		framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -30,5 +30,10 @@ namespace Vk
 	VkFramebuffer Framebuffer::GetVkFramebuffer() const
 	{
 		return vkFramebuffer;
+	}
+
+	glm::vec2 Framebuffer::GetSize() const
+	{
+		return size;
 	}
 }

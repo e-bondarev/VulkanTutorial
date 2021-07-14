@@ -11,9 +11,11 @@ namespace Vk
 		~Framebuffer();
 
 		VkFramebuffer GetVkFramebuffer() const;
+		glm::vec2 GetSize() const;
 
 	private:
 		VkFramebuffer vkFramebuffer;
+		glm::vec2 size;
 
 		Framebuffer(const Framebuffer&) = delete;
 		Framebuffer& operator=(const Framebuffer&) = delete;
