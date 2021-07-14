@@ -32,7 +32,7 @@ int main(int amountOfArguments, char *arguments[])
 {
 	Assets::LocateRoot(amountOfArguments, arguments);
 
-	Window::Create();
+	Window::Create(1920, 1080, Window::Mode::Borderless);
 	Window::Update();
 	Window::Shutdown();
 
