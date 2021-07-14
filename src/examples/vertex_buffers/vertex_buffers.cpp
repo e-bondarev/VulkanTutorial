@@ -1,4 +1,4 @@
-#include "triangle.h"
+#include "vertex_buffers.h"
 
 #include "../../assets/text_asset.h"
 #include "../../window/window.h"
@@ -11,7 +11,7 @@
 
 namespace Examples
 {
-	Triangle::Triangle()
+	VertexBuffers::VertexBuffers()
 	{
 		glm::vec2 viewport_size = { Vk::Global::swapChain->GetExtent().width, Vk::Global::swapChain->GetExtent().height };
 
@@ -34,7 +34,7 @@ namespace Examples
 		frameManager = new Vk::FrameManager();
 	}
 
-	void Triangle::RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer)
+	void VertexBuffers::RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer)
 	{	
 		command_pool->Reset();
 			command_buffer->Begin();
@@ -45,7 +45,7 @@ namespace Examples
 			command_buffer->End();
 	}
 
-	void Triangle::Draw(Vk::CommandBuffer* command_buffer)
+	void VertexBuffers::Draw(Vk::CommandBuffer* command_buffer)
 	{
 		Vk::Frame* current_frame = frameManager->GetCurrentFrame();
 
@@ -59,7 +59,7 @@ namespace Examples
 		);
 	}
 
-	void Triangle::Present()
+	void VertexBuffers::Present()
 	{
 		VkResult result = Vk::Global::swapChain->Present(&frameManager->GetCurrentFrame()->GetRenderFinishedSemaphore(), 1);
 
@@ -75,7 +75,7 @@ namespace Examples
 		frameManager->NextFrame();
 	}
 
-	void Triangle::Render()
+	void VertexBuffers::Render()
 	{		
 		Vk::Frame* current_frame = frameManager->GetCurrentFrame();
 
@@ -98,7 +98,7 @@ namespace Examples
 		Present();
 	}
 
-	Triangle::~Triangle()
+	VertexBuffers::~VertexBuffers()
 	{
 		vkDeviceWaitIdle(Vk::Global::device->GetVkDevice());
 
@@ -117,7 +117,7 @@ namespace Examples
 		delete pipeline;
 	}
 
-	void Triangle::BeforeResize()
+	void VertexBuffers::BeforeResize()
 	{
 		for (const Vk::Framebuffer* framebuffer : framebuffers)
 			delete framebuffer;
@@ -133,7 +133,7 @@ namespace Examples
 		delete pipeline;
 	}
 
-	void Triangle::AfterResize()
+	void VertexBuffers::AfterResize()
 	{
 		glm::vec2 viewport_size = { Vk::Global::swapChain->GetExtent().width, Vk::Global::swapChain->GetExtent().height };
 

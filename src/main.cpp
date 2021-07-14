@@ -3,6 +3,7 @@
 
 #include "examples/triangle/triangle.h"
 #include "examples/imgui/imgui.h"
+#include "examples/vertex_buffers/vertex_buffers.h"
 
 #include "vk/vk.h"
 
@@ -12,8 +13,9 @@ void Window::OnInit()
 {
 	Vk::Init();
 
-	example = new Examples::Triangle();
+	// example = new Examples::Triangle();
 	// example = new Examples::ImGUI();
+	example = new Examples::VertexBuffers();
 }
 
 void Window::OnResize()
