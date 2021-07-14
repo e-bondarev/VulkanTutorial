@@ -4,18 +4,23 @@
 
 #include "descriptor_pool.h"
 
+#include "../memory/buffer.h"
+
 namespace Vk
 {
 	class DescriptorSet
 	{
 	public:
-		DescriptorSet(DescriptorPool* descriptor_pool, VkDescriptorSetLayout* layouts, uint32_t amount_of_layouts);
+		DescriptorSet(DescriptorPool* descriptor_pool, VkDescriptorSetLayout* layouts);
 		~DescriptorSet();
 
-		const std::vector<VkDescriptorSet>& GetVkDescriptorSets() const;
+		void Update(Buffer* buffer, uint32_t range);
+
+		VkDescriptorSet& GetVkDescriptorSet();
+        VkDescriptorSetAllocateInfo alloc_info{};
 
 	private:
-		std::vector<VkDescriptorSet> vkDescriptorSets;
+		VkDescriptorSet vkDescriptorSet;
 
 		DescriptorSet(const DescriptorSet&) = delete;
 		DescriptorSet& operator=(const DescriptorSet&) = delete;

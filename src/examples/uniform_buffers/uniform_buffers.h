@@ -38,11 +38,11 @@ namespace Examples
 		{
 			UBO data;
 			std::vector<Vk::Buffer*> buffer;
-			std::vector<Vk::DescriptorSetLayout*> setLayout;
+			Vk::DescriptorSetLayout* setLayout;
 		} ubo;
 
 		Vk::DescriptorPool* descriptorPool;
-		Vk::DescriptorSet* descriptorSet; 
+		std::vector<Vk::DescriptorSet*> descriptorSets; 
 
 		// 3 images.
 		std::vector<Vk::Framebuffer*> framebuffers;

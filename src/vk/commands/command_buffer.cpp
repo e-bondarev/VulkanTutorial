@@ -110,6 +110,16 @@ namespace Vk
 		vkCmdBindIndexBuffer(vkCommandBuffer, index_buffer->GetVkBuffer(), 0, index_type);
 	}
 
+	void CommandBuffer::BindDescriptorSets(const Pipeline* pipeline, VkDescriptorSet* descriptor_sets, uint32_t amount_of_descriptor_sets) const
+	{
+		vkCmdBindDescriptorSets(
+			vkCommandBuffer, 
+			VK_PIPELINE_BIND_POINT_GRAPHICS, 
+			pipeline->GetVkPipelineLayout(), 0, 
+			amount_of_descriptor_sets, descriptor_sets, 0, nullptr
+		);
+	}
+
 	void CommandBuffer::Free() const
 	{
 		vkFreeCommandBuffers(Global::device->GetVkDevice(), commandPool->GetVkCommandPool(), 1, &vkCommandBuffer);

@@ -28,6 +28,7 @@ namespace Vk
 		void BindPipeline(const Pipeline* pipeline) const;
 		void BindVertexBuffers(const std::vector<Buffer*>& buffers, const std::vector<VkDeviceSize>& offsets = { 0 }) const;
 		void BindIndexBuffer(Buffer* index_buffer, VkIndexType index_type = VK_INDEX_TYPE_UINT16) const;
+		void BindDescriptorSets(const Pipeline* pipeline, VkDescriptorSet* descriptor_sets, uint32_t amount_of_descriptor_sets) const;
 
 		template <typename... Args>
 		void Draw(Args&&... args) const
