@@ -49,14 +49,14 @@ namespace Vk
         vkUnmapMemory(Global::device->GetVkDevice(), vkMemory);
 	}
 
-	Buffer::Buffer(Buffer* buffer)
+	Buffer::Buffer(Buffer* buffer, VkBufferUsageFlags usage_flags)
 	{
 		amountOfElements = buffer->amountOfElements;
 		sizeOfElement = buffer->sizeOfElement;
 
     	Util::CreateBuffer(
 			buffer->GetSize(), 
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage_flags, 
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
 			vkBuffer, 
 			vkMemory

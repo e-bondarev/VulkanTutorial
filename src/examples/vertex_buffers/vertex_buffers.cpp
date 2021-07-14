@@ -36,15 +36,28 @@ namespace Examples
 
 		for (Vk::CommandPool* command_pool : commandPools)
 			commandBuffers.push_back(new Vk::CommandBuffer(command_pool));
-
-		const std::vector<Vertex> vertices = {
-			{{ 0.0f, -0.5f}, { 1.0f, 0.0f, 0.0f }},
-			{{ 0.5f,  0.5f}, { 0.0f, 1.0f, 0.0f }},
-			{{-0.5f,  0.5f}, { 0.0f, 0.0f, 1.0f }}
+			
+		const std::vector<Vertex> vertices = 
+		{
+			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+			{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
 		};
 
-		Vk::Buffer staging_buffer(sizeof(Vertex), static_cast<uint32_t>(vertices.size()), vertices.data());
-		vertexBuffer = new Vk::Buffer(&staging_buffer);
+		const std::vector<uint16_t> indices = 
+		{
+			0, 1, 2, 2, 3, 0
+		};
+
+		{
+			Vk::Buffer staging_buffer(sizeof(Vertex), static_cast<uint32_t>(vertices.size()), vertices.data());
+			vertexBuffer = new Vk::Buffer(&staging_buffer);
+		}
+		{
+			Vk::Buffer staging_buffer(sizeof(uint16_t), static_cast<uint32_t>(indices.size()), indices.data());
+			indexBuffer = new Vk::Buffer(&staging_buffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+		}
 
 		imagesInFlight.resize(framebuffers.size(), VK_NULL_HANDLE);
 
@@ -61,9 +74,9 @@ namespace Examples
 						VkBuffer vertex_buffers[] = { vertexBuffer->GetVkBuffer() };
 						VkDeviceSize offsets[] = { 0 };
 						vkCmdBindVertexBuffers(command_buffer->GetVkCommandBuffer(), 0, 1, vertex_buffers, offsets);
-
-					// command_buffer->Draw(3, 1, 0, 0);
-						vkCmdDraw(command_buffer->GetVkCommandBuffer(), static_cast<uint32_t>(3), 1, 0, 0);
+						vkCmdBindIndexBuffer(command_buffer->GetVkCommandBuffer(), indexBuffer->GetVkBuffer(), 0, VK_INDEX_TYPE_UINT16);
+						vkCmdDrawIndexed(command_buffer->GetVkCommandBuffer(), 6, 1, 0, 0, 0);
+						
 				command_buffer->EndRenderPass();
 			command_buffer->End();
 	}
@@ -127,6 +140,7 @@ namespace Examples
 
 		delete frameManager;
 
+		delete indexBuffer;
 		delete vertexBuffer;
 
 		for (const Vk::CommandPool* command_pool : commandPools)

@@ -27,7 +27,9 @@ namespace Examples
 
 	private:
 		Vk::Pipeline* pipeline;
+
 		Vk::Buffer* vertexBuffer;
+		Vk::Buffer* indexBuffer;
 
 		// 3 images.
 		std::vector<Vk::Framebuffer*> framebuffers;

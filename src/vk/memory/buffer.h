@@ -17,7 +17,7 @@ namespace Vk
 	{
 	public:
 		Buffer(uint32_t size_of_element, uint32_t amount_of_elements = 0, const void* data = nullptr);
-		Buffer(Buffer* buffer);
+		Buffer(Buffer* buffer, VkBufferUsageFlags usage_flags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 		~Buffer();
 
 		void Update(const void* data) const;
