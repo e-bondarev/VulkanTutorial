@@ -1,8 +1,8 @@
 #include "window/window.h"
 #include "assets/assets.h"
 
-#include "examples/triangle.h"
-#include "examples/imgui.h"
+#include "examples/triangle/triangle.h"
+#include "examples/imgui/imgui.h"
 
 #include "vk/vk.h"
 

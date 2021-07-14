@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../common.h"
+#include "../../common.h"
 
-#include "../vk/pipeline/pipeline.h"
-#include "../vk/framebuffer/framebuffer.h"
-#include "../vk/commands/command_pool.h"
-#include "../vk/commands/command_buffer.h"
+#include "../../vk/pipeline/pipeline.h"
+#include "../../vk/framebuffer/framebuffer.h"
+#include "../../vk/commands/command_pool.h"
+#include "../../vk/commands/command_buffer.h"
 
-#include "example.h"
+#include "../example.h"
 
 namespace Examples
 {

@@ -1,16 +1,15 @@
 #include "imgui.h"
 
-#include "../assets/text_asset.h"
+#include "../../assets/text_asset.h"
+#include "../../window/window.h"
 
-#include "../window/window.h"
+#include "../../vk/instance/instance.h"
+#include "../../vk/surface/surface.h"
 
-#include "../vk/instance/instance.h"
-#include "../vk/surface/surface.h"
+#include "../../vk/device/device.h"
+#include "../../vk/device/queue_family.h"
 
-#include "../vk/device/device.h"
-#include "../vk/device/queue_family.h"
-
-#include "../vk/swap_chain/swap_chain.h"
+#include "../../vk/swap_chain/swap_chain.h"
 
 namespace Examples
 {
