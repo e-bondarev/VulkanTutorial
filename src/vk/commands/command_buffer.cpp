@@ -1,6 +1,7 @@
 #include "command_buffer.h"
 
 #include "../device/device.h"
+#include "../memory/buffer.h"
 
 namespace Vk
 {
@@ -85,6 +86,28 @@ namespace Vk
 	void CommandBuffer::BindPipeline(const Pipeline* pipeline) const
 	{
 		vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
+	}
+
+	void CommandBuffer::BindVertexBuffers(const std::vector<Buffer*>& buffers, const std::vector<VkDeviceSize>& offsets) const
+	{
+		VK_ASSERT(buffers.size() == offsets.size(), "These values must be equal.");
+
+		std::vector<VkBuffer> vkBuffers(buffers.size());
+		for (int i = 0; i < buffers.size(); i++)
+		{
+			vkBuffers[i] = buffers[i]->GetVkBuffer();
+		}
+		vkCmdBindVertexBuffers(
+			vkCommandBuffer, 0, 
+			static_cast<uint32_t>(vkBuffers.size()), 
+			vkBuffers.data(), 
+			offsets.data()
+		);
+	}
+
+	void CommandBuffer::BindIndexBuffer(Buffer* index_buffer, VkIndexType index_type) const
+	{
+		vkCmdBindIndexBuffer(vkCommandBuffer, index_buffer->GetVkBuffer(), 0, index_type);
 	}
 
 	void CommandBuffer::Free() const

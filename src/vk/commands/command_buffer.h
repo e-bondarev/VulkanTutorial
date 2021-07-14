@@ -9,6 +9,8 @@
 
 namespace Vk
 {
+	class Buffer;
+
 	class CommandBuffer
 	{
 	public:
@@ -21,14 +23,22 @@ namespace Vk
 		void BeginRenderPass(const RenderPass* render_pass, Framebuffer* framebuffer) const;
 		void EndRenderPass() const;
 
-		void BindPipeline(const Pipeline* pipeline) const;
-
 		void SubmitToQueue(const VkQueue& queue, VkSemaphore* wait_semaphore = nullptr, const VkSemaphore* signal_semaphore = nullptr, VkFence fence = nullptr) const;
+
+		void BindPipeline(const Pipeline* pipeline) const;
+		void BindVertexBuffers(const std::vector<Buffer*>& buffers, const std::vector<VkDeviceSize>& offsets = { 0 }) const;
+		void BindIndexBuffer(Buffer* index_buffer, VkIndexType index_type = VK_INDEX_TYPE_UINT16) const;
 
 		template <typename... Args>
 		void Draw(Args&&... args) const
 		{
 			vkCmdDraw(vkCommandBuffer, std::forward<Args>(args)...);
+		}
+
+		template <typename... Args>
+		void DrawIndexed(Args&&... args) const
+		{
+			vkCmdDrawIndexed(vkCommandBuffer, std::forward<Args>(args)...);
 		}
 
 		void Free() const;

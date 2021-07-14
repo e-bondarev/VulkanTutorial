@@ -9,6 +9,9 @@
 #include <memory>
 #include <array>
 #include <set>
+#include <assert.h>
+
+#define VK_ASSERT(exp, msg) assert((exp) && msg)
 
 #define VOID_ASSEMBLY			(void(0))
 

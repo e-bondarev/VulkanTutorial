@@ -23,6 +23,8 @@ namespace Vk
 		void Update(const void* data) const;
 
 		uint32_t GetSize() const;
+		uint32_t GetSizeOfElement() const;
+		uint32_t GetAmountOfElements() const;
 
 		VkBuffer& GetVkBuffer();
 		VkDeviceMemory& GetVkMemory();

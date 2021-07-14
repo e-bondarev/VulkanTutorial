@@ -100,4 +100,14 @@ namespace Vk
 	{
 		return sizeOfElement * amountOfElements;
 	}
+
+	uint32_t Buffer::GetSizeOfElement() const
+	{
+		return sizeOfElement;
+	}
+
+	uint32_t Buffer::GetAmountOfElements() const
+	{
+		return amountOfElements;
+	}
 }
