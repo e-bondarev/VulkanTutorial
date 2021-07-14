@@ -27,12 +27,12 @@ namespace Vk
         pool_info.maxSets = 1000 * 11;
         pool_info.poolSizeCount = 11;
         pool_info.pPoolSizes = pool_sizes;
-        VK_CHECK(vkCreateDescriptorPool(device->GetVkDevice(), &pool_info, nullptr, &vkDescriptorPool), "Failed to create descriptor pool.");
+        VK_CHECK(vkCreateDescriptorPool(Global::device->GetVkDevice(), &pool_info, nullptr, &vkDescriptorPool), "Failed to create descriptor pool.");
 	}
 
 	DescriptorPool::~DescriptorPool()
 	{
-		vkDestroyDescriptorPool(device->GetVkDevice(), vkDescriptorPool, nullptr);
+		vkDestroyDescriptorPool(Global::device->GetVkDevice(), vkDescriptorPool, nullptr);
 	}
 
 	VkDescriptorPool& DescriptorPool::GetVkDescriptorPool()

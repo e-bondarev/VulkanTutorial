@@ -4,17 +4,20 @@
 
 namespace Vk
 {
-	class Surface
+	namespace Global
 	{
-	public:
-		Surface();
-		~Surface();
+		class Surface
+		{
+		public:
+			Surface();
+			~Surface();
 
-		VkSurfaceKHR GetVkSurface() const;
+			VkSurfaceKHR GetVkSurface() const;
 
-	private:
-		VkSurfaceKHR vkSurface;
-	};
+		private:
+			VkSurfaceKHR vkSurface;
+		};
 
-	extern Surface* surface;
+		extern Surface *surface;
+	}
 }

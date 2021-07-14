@@ -42,14 +42,14 @@ namespace Vk
 		render_pass_info.dependencyCount = 1;
 		render_pass_info.pDependencies = &dependency;
 
-		VK_CHECK(vkCreateRenderPass(device->GetVkDevice(), &render_pass_info, nullptr, &vkRenderPass), "Failed to create render pass.");
+		VK_CHECK(vkCreateRenderPass(Global::device->GetVkDevice(), &render_pass_info, nullptr, &vkRenderPass), "Failed to create render pass.");
 
 		TRACE();
 	}
 
 	RenderPass::~RenderPass()
 	{
-    	vkDestroyRenderPass(device->GetVkDevice(), vkRenderPass, nullptr);
+    	vkDestroyRenderPass(Global::device->GetVkDevice(), vkRenderPass, nullptr);
 
 		TRACE();
 	}

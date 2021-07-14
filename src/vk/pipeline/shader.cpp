@@ -14,7 +14,7 @@ namespace Vk
 			create_info.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
 			VkShaderModule shader_module;
-			VK_CHECK (vkCreateShaderModule(device->GetVkDevice(), &create_info, nullptr, &shader_module), "Failed to create shader module.");
+			VK_CHECK (vkCreateShaderModule(Global::device->GetVkDevice(), &create_info, nullptr, &shader_module), "Failed to create shader module.");
 
 			return shader_module;
 		}
@@ -46,7 +46,7 @@ namespace Vk
 	Shader::~Shader()
 	{
 		for (const auto& module : modules)
-			vkDestroyShaderModule(device->GetVkDevice(), module, nullptr);
+			vkDestroyShaderModule(Global::device->GetVkDevice(), module, nullptr);
 
 		TRACE();
 	}

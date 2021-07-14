@@ -15,14 +15,14 @@ namespace Vk
 		framebuffer_info.height = static_cast<uint32_t>(size.y);
 		framebuffer_info.layers = 1;
 
-		VK_CHECK(vkCreateFramebuffer(device->GetVkDevice(), &framebuffer_info, nullptr, &vkFramebuffer), "Failed to create framebuffer.");
+		VK_CHECK(vkCreateFramebuffer(Global::device->GetVkDevice(), &framebuffer_info, nullptr, &vkFramebuffer), "Failed to create framebuffer.");
 
 		TRACE();
 	}
 
 	Framebuffer::~Framebuffer()
 	{
-        vkDestroyFramebuffer(device->GetVkDevice(), vkFramebuffer, nullptr);
+        vkDestroyFramebuffer(Global::device->GetVkDevice(), vkFramebuffer, nullptr);
 
 		TRACE();
 	}

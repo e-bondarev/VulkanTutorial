@@ -12,7 +12,7 @@ namespace Vk
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = 1;
 
-		VK_CHECK(vkAllocateCommandBuffers(device->GetVkDevice(), &allocInfo, &vkCommandBuffer), "Failed to allocate command buffers.");
+		VK_CHECK(vkAllocateCommandBuffers(Global::device->GetVkDevice(), &allocInfo, &vkCommandBuffer), "Failed to allocate command buffers.");
 
 		TRACE();
 	}

@@ -4,22 +4,25 @@
 
 #include <memory>
 
-namespace Vk 
+namespace Vk
 {
-	class Instance 
+	namespace Global
 	{
-	public:
-		Instance();
-		~Instance();
+		class Instance
+		{
+		public:
+			Instance();
+			~Instance();
 
-		VkInstance GetVkInstance() const;
+			VkInstance GetVkInstance() const;
 
-	private:
-		VkInstance vkInstance;
+		private:
+			VkInstance vkInstance;
 
-		Instance(const Instance&) = delete;
-		Instance& operator=(const Instance&) = delete;
-	};
-	
-	extern Instance* instance;
+			Instance(const Instance &) = delete;
+			Instance &operator=(const Instance &) = delete;
+		};
+
+		extern Instance *instance;
+	}
 }

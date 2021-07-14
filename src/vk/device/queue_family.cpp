@@ -2,55 +2,58 @@
 
 #include "../surface/surface.h"
 
-namespace Vk {
-namespace Queues {
-
-QueueFamilyIndices indices = {};
-
-VkQueue graphicsQueue = VK_NULL_HANDLE;
-VkQueue presentQueue = VK_NULL_HANDLE;
-
-bool QueueFamilyIndices::IsComplete() const
+namespace Vk
 {
-	return graphicsFamily.has_value() && presentFamily.has_value();
-}
-
-QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device)
-{
-	QueueFamilyIndices newIndices;
-
-	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-	int i = 0;
-	for (const auto& queueFamily : queueFamilies) 
+	namespace Global
 	{
-		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) 
-		{
-			newIndices.graphicsFamily = i;
+		namespace Queues
+		{			
+			QueueFamilyIndices indices = {};
 
-            VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface->GetVkSurface(), &presentSupport);
+			VkQueue graphicsQueue = VK_NULL_HANDLE;
+			VkQueue presentQueue = VK_NULL_HANDLE;
 
-            if (presentSupport) 
+			bool QueueFamilyIndices::IsComplete() const
 			{
-                newIndices.presentFamily = i;
-            }
+				return graphicsFamily.has_value() && presentFamily.has_value();
+			}
 
-			if (newIndices.IsComplete())
+			QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device)
 			{
-				break;
+				QueueFamilyIndices newIndices;
+
+				uint32_t queueFamilyCount = 0;
+				vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+				std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+				vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+				int i = 0;
+				for (const auto &queueFamily : queueFamilies)
+				{
+					if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+					{
+						newIndices.graphicsFamily = i;
+
+						VkBool32 presentSupport = false;
+						vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface->GetVkSurface(), &presentSupport);
+
+						if (presentSupport)
+						{
+							newIndices.presentFamily = i;
+						}
+
+						if (newIndices.IsComplete())
+						{
+							break;
+						}
+					}
+
+					i++;
+				}
+
+				return newIndices;
 			}
 		}
-
-		i++;
 	}
-
-	return newIndices;
-}
-
-}
 }

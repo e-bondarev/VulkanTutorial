@@ -4,44 +4,47 @@
 
 namespace Vk
 {
-	class SwapChain
+	namespace Global
 	{
-	public:
-		SwapChain();
-		~SwapChain();
+		class SwapChain
+		{
+		public:
+			SwapChain();
+			~SwapChain();
 
-		void AcquireImage(VkSemaphore semaphore);
+			void AcquireImage(VkSemaphore semaphore);
 
-		uint32_t GetCurrentImageIndex() const;
+			uint32_t GetCurrentImageIndex() const;
 
-		VkSwapchainKHR GetVkSwapChain() const;
-		VkFormat GetImageFormat() const;
-		VkSurfaceFormatKHR GetSurfaceFormat() const;
-		VkExtent2D GetExtent() const;
+			VkSwapchainKHR GetVkSwapChain() const;
+			VkFormat GetImageFormat() const;
+			VkSurfaceFormatKHR GetSurfaceFormat() const;
+			VkExtent2D GetExtent() const;
 
-		const std::vector<VkImage>& GetImages() const;
-		const std::vector<VkImageView>& GetImageViews() const;
+			const std::vector<VkImage> &GetImages() const;
+			const std::vector<VkImageView> &GetImageViews() const;
 
-	private:
-		uint32_t imageIndex;
+		private:
+			uint32_t imageIndex;
 
-		VkSwapchainKHR swapChain;
+			VkSwapchainKHR vkSwapChain;
 
-		VkFormat imageFormat;
-		VkSurfaceFormatKHR surfaceFormat;
-		VkPresentModeKHR presentMode;
-		VkExtent2D extent;
+			VkFormat imageFormat;
+			VkSurfaceFormatKHR surfaceFormat;
+			VkPresentModeKHR presentMode;
+			VkExtent2D extent;
 
-		std::vector<VkImage> images;
-		std::vector<VkImageView> imageViews;
+			std::vector<VkImage> images;
+			std::vector<VkImageView> imageViews;
 
-		VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
-		VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
-		VkExtent2D ChooseExtent(const VkSurfaceCapabilitiesKHR &capabilities);
+			VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+			VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
+			VkExtent2D ChooseExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
-		void CreateImageViews();
-		void DestroyImageViews();
-	};
+			void CreateImageViews();
+			void DestroyImageViews();
+		};
 
-	extern SwapChain* swapChain;
+		extern SwapChain *swapChain;
+	}
 }

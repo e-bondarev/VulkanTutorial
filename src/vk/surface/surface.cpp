@@ -5,24 +5,27 @@
 
 namespace Vk
 {
-	Surface* surface;
-
-	Surface::Surface()
+	namespace Global
 	{
-		VK_CHECK(glfwCreateWindowSurface(instance->GetVkInstance(), Window::glfwWindow, nullptr, &vkSurface), "Failed to create window surface.");
+		Surface* surface;
 
-		TRACE();
-	}
+		Surface::Surface()
+		{
+			VK_CHECK(glfwCreateWindowSurface(instance->GetVkInstance(), Window::glfwWindow, nullptr, &vkSurface), "Failed to create window surface.");
 
-	Surface::~Surface()
-	{
-		vkDestroySurfaceKHR(instance->GetVkInstance(), vkSurface, nullptr);
+			TRACE();
+		}
 
-		TRACE();
-	}
+		Surface::~Surface()
+		{
+			vkDestroySurfaceKHR(instance->GetVkInstance(), vkSurface, nullptr);
 
-	VkSurfaceKHR Surface::GetVkSurface() const
-	{
-		return vkSurface;
+			TRACE();
+		}
+
+		VkSurfaceKHR Surface::GetVkSurface() const
+		{
+			return vkSurface;
+		}
 	}
 }

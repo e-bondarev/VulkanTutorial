@@ -2,22 +2,25 @@
 
 #include "../../common.h"
 
-namespace Vk {
-namespace Queues {
-
-struct QueueFamilyIndices
+namespace Vk
 {
-	std::optional<uint32_t> graphicsFamily;
-	std::optional<uint32_t> presentFamily;
+	namespace Global
+	{
+		namespace Queues
+		{
+			struct QueueFamilyIndices
+			{
+				std::optional<uint32_t> graphicsFamily;
+				std::optional<uint32_t> presentFamily;
 
-	bool IsComplete() const;
-};
+				bool IsComplete() const;
+			};
 
-extern QueueFamilyIndices indices;
-QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+			extern QueueFamilyIndices indices;
+			QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 
-extern VkQueue graphicsQueue;
-extern VkQueue presentQueue;
-
-}
+			extern VkQueue graphicsQueue;
+			extern VkQueue presentQueue;
+		}
+	}
 }
