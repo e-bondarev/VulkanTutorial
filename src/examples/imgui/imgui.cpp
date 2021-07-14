@@ -82,27 +82,27 @@ namespace Examples
 			commandBuffers.push_back(new Vk::CommandBuffer(command_pool));
 		}
 
-		for (int i = 0; i < commandBuffers.size(); i++)
-		{
-			commandBuffers[i]->Begin();
-				VkRenderPassBeginInfo renderPassInfo{};
-				renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-				renderPassInfo.renderPass = pipeline->GetRenderPass()->GetVkRenderPass();
-				renderPassInfo.framebuffer = framebuffers[i]->GetVkFramebuffer();
+		// for (int i = 0; i < commandBuffers.size(); i++)
+		// {
+		// 	commandBuffers[i]->Begin();
+		// 		VkRenderPassBeginInfo renderPassInfo{};
+		// 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		// 		renderPassInfo.renderPass = pipeline->GetRenderPass()->GetVkRenderPass();
+		// 		renderPassInfo.framebuffer = framebuffers[i]->GetVkFramebuffer();
 
-				renderPassInfo.renderArea.offset = {0, 0};
-				renderPassInfo.renderArea.extent = Vk::Global::swapChain->GetExtent();
+		// 		renderPassInfo.renderArea.offset = {0, 0};
+		// 		renderPassInfo.renderArea.extent = Vk::Global::swapChain->GetExtent();
 
-				VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-				renderPassInfo.clearValueCount = 1;
-				renderPassInfo.pClearValues = &clearColor;
+		// 		VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+		// 		renderPassInfo.clearValueCount = 1;
+		// 		renderPassInfo.pClearValues = &clearColor;
 
-				vkCmdBeginRenderPass(commandBuffers[i]->GetVkCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-					vkCmdBindPipeline(commandBuffers[i]->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
-					vkCmdDraw(commandBuffers[i]->GetVkCommandBuffer(), 3, 1, 0, 0);
-				vkCmdEndRenderPass(commandBuffers[i]->GetVkCommandBuffer());		
-			commandBuffers[i]->End();
-		}
+		// 		vkCmdBeginRenderPass(commandBuffers[i]->GetVkCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		// 			vkCmdBindPipeline(commandBuffers[i]->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
+		// 			vkCmdDraw(commandBuffers[i]->GetVkCommandBuffer(), 3, 1, 0, 0);
+		// 		vkCmdEndRenderPass(commandBuffers[i]->GetVkCommandBuffer());		
+		// 	commandBuffers[i]->End();
+		// }
 
 		frames.resize(MAX_FRAMES_IN_FLIGHT);
 		imagesInFlight.resize(framebuffers.size(), VK_NULL_HANDLE);
@@ -142,8 +142,8 @@ namespace Examples
 
 		imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] = frames[currentFrame].InFlightFence;
 
-		Vk::CommandPool* current_command_pool = commandPools[currentFrame];
-		Vk::CommandBuffer* current_command_buffer = commandBuffers[currentFrame];	
+		Vk::CommandPool* current_command_pool = commandPools[Vk::Global::swapChain->GetCurrentImageIndex()];
+		Vk::CommandBuffer* current_command_buffer = commandBuffers[Vk::Global::swapChain->GetCurrentImageIndex()];	
 		Vk::Framebuffer* current_framebuffer = framebuffers[Vk::Global::swapChain->GetCurrentImageIndex()];
 
 		current_command_pool->Reset();

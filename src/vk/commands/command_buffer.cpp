@@ -2,6 +2,8 @@
 
 #include "../device/device.h"
 
+#include "../pipeline/render_pass.h"
+
 namespace Vk
 {
 	CommandBuffer::CommandBuffer(CommandPool* command_pool)
@@ -61,6 +63,29 @@ namespace Vk
 
         VK_CHECK(vkQueueSubmit(queue, 1, &submit_info, fence), "Failed to submit queue.");
 	}
+
+	void CommandBuffer::BeginRenderPass(const RenderPass* render_pass, Framebuffer* framebuffer) const
+	{		
+        VkRenderPassBeginInfo submit_info = {};
+        submit_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        submit_info.renderPass = render_pass->GetVkRenderPass();
+        submit_info.framebuffer = framebuffer->GetVkFramebuffer();
+        submit_info.renderArea.extent = { static_cast<uint32_t>(framebuffer->GetSize().x), static_cast<uint32_t>(framebuffer->GetSize().y) };
+        submit_info.clearValueCount = 1;
+		VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+        submit_info.pClearValues = &clearColor;
+        vkCmdBeginRenderPass(vkCommandBuffer, &submit_info, VK_SUBPASS_CONTENTS_INLINE);
+	}
+
+	void CommandBuffer::EndRenderPass() const
+	{
+    	vkCmdEndRenderPass(vkCommandBuffer);
+	}
+
+	// void CommandBuffer::BindPipeline(const Pipeline* pipeline) const
+	// {
+	// 	vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
+	// }
 
 	VkCommandBuffer& CommandBuffer::GetVkCommandBuffer()
 	{

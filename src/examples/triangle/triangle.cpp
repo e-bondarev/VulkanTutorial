@@ -35,27 +35,27 @@ namespace Examples
 			commandBuffers.push_back(new Vk::CommandBuffer(command_pool));
 		}
 
-		for (int i = 0; i < commandBuffers.size(); i++)
-		{
-			commandBuffers[i]->Begin();
-				VkRenderPassBeginInfo renderPassInfo{};
-				renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-				renderPassInfo.renderPass = pipeline->GetRenderPass()->GetVkRenderPass();
-				renderPassInfo.framebuffer = framebuffers[i]->GetVkFramebuffer();
+		// for (int i = 0; i < commandBuffers.size(); i++)
+		// {
+		// 	commandBuffers[i]->Begin();
+		// 		VkRenderPassBeginInfo renderPassInfo{};
+		// 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		// 		renderPassInfo.renderPass = pipeline->GetRenderPass()->GetVkRenderPass();
+		// 		renderPassInfo.framebuffer = framebuffers[i]->GetVkFramebuffer();
 
-				renderPassInfo.renderArea.offset = {0, 0};
-				renderPassInfo.renderArea.extent = Vk::Global::swapChain->GetExtent();
+		// 		renderPassInfo.renderArea.offset = {0, 0};
+		// 		renderPassInfo.renderArea.extent = Vk::Global::swapChain->GetExtent();
 
-				VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-				renderPassInfo.clearValueCount = 1;
-				renderPassInfo.pClearValues = &clearColor;
+		// 		VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+		// 		renderPassInfo.clearValueCount = 1;
+		// 		renderPassInfo.pClearValues = &clearColor;
 
-				vkCmdBeginRenderPass(commandBuffers[i]->GetVkCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-					vkCmdBindPipeline(commandBuffers[i]->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
-					vkCmdDraw(commandBuffers[i]->GetVkCommandBuffer(), 3, 1, 0, 0);
-				vkCmdEndRenderPass(commandBuffers[i]->GetVkCommandBuffer());		
-			commandBuffers[i]->End();
-		}
+		// 		vkCmdBeginRenderPass(commandBuffers[i]->GetVkCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		// 			vkCmdBindPipeline(commandBuffers[i]->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
+		// 			vkCmdDraw(commandBuffers[i]->GetVkCommandBuffer(), 3, 1, 0, 0);
+		// 		vkCmdEndRenderPass(commandBuffers[i]->GetVkCommandBuffer());		
+		// 	commandBuffers[i]->End();
+		// }
 
 		frames.resize(MAX_FRAMES_IN_FLIGHT);
 		imagesInFlight.resize(framebuffers.size(), VK_NULL_HANDLE);
@@ -75,34 +75,23 @@ namespace Examples
 		}
 	}
 
-	void Triangle::Render()
-	{		
-		Vk::Global::swapChain->AcquireImage(frames[currentFrame].ImageAvailable);
-
-		if (imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] != VK_NULL_HANDLE) 
-			vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()], VK_TRUE, UINT64_MAX);
-
-		vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
-		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
-
-		imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] = frames[currentFrame].InFlightFence;
-		
-		
-		Vk::CommandPool* current_command_pool = commandPools[currentFrame];
-		Vk::CommandBuffer* current_command_buffer = commandBuffers[currentFrame];	
+	void Triangle::RecordCommandBuffer()
+	{	
+		Vk::CommandPool* current_command_pool = commandPools[Vk::Global::swapChain->GetCurrentImageIndex()];
+		Vk::CommandBuffer* current_command_buffer = commandBuffers[Vk::Global::swapChain->GetCurrentImageIndex()];	
 		Vk::Framebuffer* current_framebuffer = framebuffers[Vk::Global::swapChain->GetCurrentImageIndex()];
 
 		current_command_pool->Reset();
 		current_command_buffer->Begin();
-			pipeline->GetRenderPass()->Begin(current_command_buffer, current_framebuffer);
+			current_command_buffer->BeginRenderPass(pipeline->GetRenderPass(), current_framebuffer);
 				vkCmdBindPipeline(current_command_buffer->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipeline());
 				vkCmdDraw(current_command_buffer->GetVkCommandBuffer(), 3, 1, 0, 0);
-			pipeline->GetRenderPass()->End(current_command_buffer);
+			current_command_buffer->EndRenderPass();
 		current_command_buffer->End();
-		
+	}
 
-
-
+	void Triangle::Draw()
+	{
 		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
 
 		commandBuffers[Vk::Global::swapChain->GetCurrentImageIndex()]->SubmitToQueue(
@@ -111,9 +100,10 @@ namespace Examples
 			&frames[currentFrame].RenderFinished, 
 			frames[currentFrame].InFlightFence
 		);
+	}
 
-
-
+	void Triangle::Present()
+	{
 		VkPresentInfoKHR present_info{};
 		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
@@ -132,11 +122,26 @@ namespace Examples
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
+	void Triangle::Render()
+	{		
+		Vk::Global::swapChain->AcquireImage(frames[currentFrame].ImageAvailable);
+
+		if (imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] != VK_NULL_HANDLE) 
+			vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()], VK_TRUE, UINT64_MAX);
+
+		vkWaitForFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(Vk::Global::device->GetVkDevice(), 1, &frames[currentFrame].InFlightFence);
+
+		imagesInFlight[Vk::Global::swapChain->GetCurrentImageIndex()] = frames[currentFrame].InFlightFence;
+
+		RecordCommandBuffer();
+		Draw();
+		Present();
+	}
+
 	Triangle::~Triangle()
 	{
 		vkDeviceWaitIdle(Vk::Global::device->GetVkDevice());
-
-		// ShutdownImGui();
 
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
