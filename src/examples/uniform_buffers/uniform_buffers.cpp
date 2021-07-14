@@ -1,4 +1,4 @@
-#include "vertex_buffers.h"
+#include "uniform_buffers.h"
 
 #include "../../assets/text_asset.h"
 #include "../../window/window.h"
@@ -13,19 +13,32 @@
 
 namespace Examples
 {
-	VertexBuffers::VertexBuffers()
+	UniformBuffers::UniformBuffers()
 	{
+		frameManager = new Vk::FrameManager();
+
 		glm::vec2 viewport_size = { Vk::Global::swapChain->GetExtent().width, Vk::Global::swapChain->GetExtent().height };
 
-		Assets::Text vs_code("assets/shaders/vertex_buffers/vertex_buffers.vert.spv");
-		Assets::Text fs_code("assets/shaders/vertex_buffers/vertex_buffers.frag.spv");
+		Assets::Text vs_code("assets/shaders/uniform_buffers/uniform_buffers.vert.spv");
+		Assets::Text fs_code("assets/shaders/uniform_buffers/uniform_buffers.frag.spv");
+
+		for (const VkImageView& image_view : Vk::Global::swapChain->GetImageViews())
+		{
+			ubo.setLayout.push_back(new Vk::DescriptorSetLayout());
+			ubo.buffer.push_back(new Vk::Buffer(
+				sizeof(UBO), 1, &ubo.data, 
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+			));
+		}
 		
 		pipeline = new Vk::Pipeline(
 			vs_code.GetContent(), 
 			fs_code.GetContent(), 
 			viewport_size, 
 			Vk::Global::swapChain->GetImageFormat(), 
-			Vertex::GetBindingDescriptions(), Vertex::GetAttributeDescriptions()
+			Vertex::GetBindingDescriptions(), Vertex::GetAttributeDescriptions(),
+			{ ubo.setLayout[0]->GetVkDescriptorSetLayout() }
 		);
 
 		for (const VkImageView& image_view : Vk::Global::swapChain->GetImageViews())
@@ -61,10 +74,36 @@ namespace Examples
 
 		imagesInFlight.resize(framebuffers.size(), VK_NULL_HANDLE);
 
-		frameManager = new Vk::FrameManager();
+		std::vector<VkDescriptorSetLayout> layouts;
+		for (int i = 0; i < ubo.setLayout.size(); i++)
+		{
+			layouts.push_back(ubo.setLayout[i]->GetVkDescriptorSetLayout());
+		}
+
+		descriptorPool = new Vk::DescriptorPool();
+		descriptorSet = new Vk::DescriptorSet(descriptorPool, layouts.data(), static_cast<uint32_t>(layouts.size()));
+
+		for (int i = 0; i < descriptorSet->GetVkDescriptorSets().size(); i++)
+		{
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = ubo.buffer[i]->GetVkBuffer();
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(UBO);
+
+            VkWriteDescriptorSet descriptorWrite{};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = descriptorSet->GetVkDescriptorSets()[i];
+            descriptorWrite.dstBinding = 0;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pBufferInfo = &bufferInfo;
+
+            vkUpdateDescriptorSets(Vk::Global::device->GetVkDevice(), 1, &descriptorWrite, 0, nullptr);
+		}
 	}
 
-	void VertexBuffers::RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer)
+	void UniformBuffers::RecordCommandBuffer(Vk::CommandPool* command_pool, Vk::CommandBuffer* command_buffer, Vk::Framebuffer* framebuffer)
 	{
 		command_pool->Reset();
 			command_buffer->Begin();
@@ -73,13 +112,32 @@ namespace Examples
 
 						command_buffer->BindVertexBuffers({ vertexBuffer }, { 0 });
 						command_buffer->BindIndexBuffer(indexBuffer);
+
+						vkCmdBindDescriptorSets(command_buffer->GetVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVkPipelineLayout(), 0, 1, &descriptorSet->GetVkDescriptorSets()[frameManager->GetCurrentFrameIndex()], 0, nullptr);
+
 							command_buffer->DrawIndexed(indexBuffer->GetAmountOfElements(), 1, 0, 0, 0);
 
 				command_buffer->EndRenderPass();
 			command_buffer->End();
 	}
 
-	void VertexBuffers::Draw(Vk::CommandBuffer* command_buffer)
+	void UniformBuffers::UpdateUBO()
+	{
+		static float alpha = 0.0f;
+
+		alpha += 0.01f;
+
+		ubo.data.Model = glm::mat4x4(1);
+		ubo.data.Model = glm::rotate(ubo.data.Model, glm::radians(alpha), glm::vec3(0, 0, 1));
+		ubo.data.Model = glm::translate(ubo.data.Model, glm::vec3(0, 0, -10));
+
+		ubo.data.View = glm::mat4x4(1);
+		ubo.data.Projection = glm::perspective(glm::radians(70.0f), Window::size.x / Window::size.y, 0.1f, 1000.0f);
+
+		ubo.buffer[frameManager->GetCurrentFrameIndex()]->Update(&ubo.data);
+	}
+
+	void UniformBuffers::Draw(Vk::CommandBuffer* command_buffer)
 	{
 		Vk::Frame* current_frame = frameManager->GetCurrentFrame();
 
@@ -93,7 +151,7 @@ namespace Examples
 		);
 	}
 
-	void VertexBuffers::Present()
+	void UniformBuffers::Present()
 	{
 		VkResult result = Vk::Global::swapChain->Present(&frameManager->GetCurrentFrame()->GetRenderFinishedSemaphore(), 1);
 
@@ -109,7 +167,7 @@ namespace Examples
 		frameManager->NextFrame();
 	}
 
-	void VertexBuffers::Render()
+	void UniformBuffers::Render()
 	{		
 		Vk::Frame* current_frame = frameManager->GetCurrentFrame();
 
@@ -128,13 +186,17 @@ namespace Examples
 		Vk::Framebuffer* current_framebuffer = framebuffers[image_index];
 
 		RecordCommandBuffer(current_command_pool, current_command_buffer, current_framebuffer);
+		UpdateUBO();
 		Draw(current_command_buffer);
 		Present();
 	}
 
-	VertexBuffers::~VertexBuffers()
+	UniformBuffers::~UniformBuffers()
 	{
 		vkDeviceWaitIdle(Vk::Global::device->GetVkDevice());
+		
+		delete descriptorPool;
+		delete descriptorSet;
 
 		delete frameManager;
 
@@ -152,9 +214,19 @@ namespace Examples
 		}
 
 		delete pipeline;
+
+		for (const Vk::DescriptorSetLayout* layout : ubo.setLayout)
+		{
+			delete layout;
+		}
+
+		for (const Vk::Buffer* buffer : ubo.buffer)
+		{
+			delete buffer;
+		}
 	}
 
-	void VertexBuffers::BeforeResize()
+	void UniformBuffers::BeforeResize()
 	{
 		for (const Vk::Framebuffer* framebuffer : framebuffers)
 			delete framebuffer;
@@ -170,12 +242,12 @@ namespace Examples
 		delete pipeline;
 	}
 
-	void VertexBuffers::AfterResize()
+	void UniformBuffers::AfterResize()
 	{
 		glm::vec2 viewport_size = { Vk::Global::swapChain->GetExtent().width, Vk::Global::swapChain->GetExtent().height };
 
-		Assets::Text vs_code("assets/shaders/vertex_buffers/vertex_buffers.vert.spv");
-		Assets::Text fs_code("assets/shaders/vertex_buffers/vertex_buffers.frag.spv");
+		Assets::Text vs_code("assets/shaders/uniform_buffers/uniform_buffers.vert.spv");
+		Assets::Text fs_code("assets/shaders/uniform_buffers/uniform_buffers.frag.spv");
 		
 		pipeline = new Vk::Pipeline(
 			vs_code.GetContent(), 

@@ -31,6 +31,9 @@ namespace Vk
 
 		void NextFrame();
 		Frame* GetCurrentFrame();
+
+		int GetAmountOfFrames() const;
+		int GetCurrentFrameIndex() const;
 		
 	private:
 		int framesCount = 0;

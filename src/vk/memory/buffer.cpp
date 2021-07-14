@@ -31,14 +31,14 @@ namespace Vk
 		}
 	}
 
-	Buffer::Buffer(uint32_t size_of_element, uint32_t amount_of_elements, const void* data) : sizeOfElement { size_of_element }, amountOfElements { amount_of_elements }
+	Buffer::Buffer(uint32_t size_of_element, uint32_t amount_of_elements, const void* data, VkBufferUsageFlags usage_flags, VkMemoryPropertyFlags property_flags) : sizeOfElement { size_of_element }, amountOfElements { amount_of_elements }
 	{
     	VkDeviceSize buffer_size = size_of_element * amount_of_elements;
 		
 		Util::CreateBuffer(
 			buffer_size, 
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+			usage_flags, 
+			property_flags, 
 			vkBuffer, 
 			vkMemory
 		);

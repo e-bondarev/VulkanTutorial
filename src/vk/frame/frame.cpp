@@ -65,4 +65,14 @@ namespace Vk
 	{
 		return frames[currentFrame];
 	}
+
+	int FrameManager::GetAmountOfFrames() const
+	{
+		return framesCount;
+	}
+
+	int FrameManager::GetCurrentFrameIndex() const
+	{
+		return currentFrame;
+	}
 }

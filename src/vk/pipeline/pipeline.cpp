@@ -10,7 +10,8 @@ namespace Vk
 		const glm::vec2& viewport_size, 
 		VkFormat image_format, 
 		const BindingDescriptions& binding_descriptions,
-		const AttributeDescriptions& attribute_descriptions
+		const AttributeDescriptions& attribute_descriptions,
+		const SetLayouts& set_layouts
 	)
 	{
 		shader = new Shader(vs_code, fs_code);
@@ -103,8 +104,8 @@ namespace Vk
 
 		VkPipelineLayoutCreateInfo pipeline_layout_info{};
 		pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipeline_layout_info.setLayoutCount = 0; // Optional
-		pipeline_layout_info.pSetLayouts = nullptr; // Optional
+		pipeline_layout_info.setLayoutCount = static_cast<uint32_t>(set_layouts.size()); // Optional
+		pipeline_layout_info.pSetLayouts = set_layouts.data(); // Optional
 		pipeline_layout_info.pushConstantRangeCount = 0; // Optional
 		pipeline_layout_info.pPushConstantRanges = nullptr; // Optional
 

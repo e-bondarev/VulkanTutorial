@@ -16,7 +16,13 @@ namespace Vk
 	class Buffer
 	{
 	public:
-		Buffer(uint32_t size_of_element, uint32_t amount_of_elements = 0, const void* data = nullptr);
+		Buffer(
+			uint32_t size_of_element, 
+			uint32_t amount_of_elements = 0, 
+			const void* data = nullptr, 
+			VkBufferUsageFlags usage_flags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VkMemoryPropertyFlags property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		);
 		Buffer(Buffer* buffer, VkBufferUsageFlags usage_flags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 		~Buffer();
 

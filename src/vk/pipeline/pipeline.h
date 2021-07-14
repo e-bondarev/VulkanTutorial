@@ -12,6 +12,7 @@ namespace Vk
 
 	using BindingDescriptions = std::vector<VkVertexInputBindingDescription>;
 	using AttributeDescriptions = std::vector<VkVertexInputAttributeDescription>;
+	using SetLayouts = std::vector<VkDescriptorSetLayout>;
 
 	class Pipeline
 	{
@@ -22,7 +23,8 @@ namespace Vk
 			const glm::vec2& viewport_size, 
 			VkFormat image_format, 
 			const BindingDescriptions& binding_descriptions = {},
-			const AttributeDescriptions& attribute_descriptions = {}
+			const AttributeDescriptions& attribute_descriptions = {},
+			const SetLayouts& set_layouts = {}
 		);
 
 		~Pipeline();
