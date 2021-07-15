@@ -5,6 +5,7 @@
 #include "examples/imgui/imgui.h"
 #include "examples/vertex_buffers/vertex_buffers.h"
 #include "examples/uniform_buffers/uniform_buffers.h"
+#include "examples/dynamic_uniform_buffers/dynamic_uniform_buffers.h"
 
 #include "vk/vk.h"
 
@@ -17,7 +18,8 @@ void Window::OnInit()
 	// example = new Examples::Triangle();
 	// example = new Examples::ImGUI();
 	// example = new Examples::VertexBuffers();
-	example = new Examples::UniformBuffers();
+	// example = new Examples::UniformBuffers();
+	example = new Examples::DynamicUniformBuffers();
 }
 
 void Window::OnResize()
